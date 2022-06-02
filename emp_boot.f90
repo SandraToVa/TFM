@@ -3,7 +3,7 @@ PROGRAM PLOT_EMP
   !                            MAIN PROGRAM
   ! gfortran -g -fcheck=all -w emp_boot.f90
   !***********************************************************************
-
+  !Comentari
   IMPLICIT NONE
   INTEGER, PARAMETER :: nsc=29, nt=22
   INTEGER, PARAMETER :: nboot=30
@@ -55,18 +55,18 @@ PROGRAM PLOT_EMP
   ENDDO
   OPEN (10, file="EMP_prot_boot.dat")
     DO k=1,(nt-kt)
-      WRITE(10,*) k,mean(k),sigm(k)		!mean(k)=\barr(E)(t), 
+      WRITE(10,*) k,mean(k),sigm(k)		!mean(k)=\barr(E)(t),
     ENDDO
   CLOSE(10)
 
 !Per calcular la matriu de cov i les chi2
   OPEN (11, file="EMP_prot_boot_var.dat")
-    WRITE(11,*) nsc,nboot,nt 
+    WRITE(11,*) nsc,nboot,nt
   CLOSE(11)
 
   OPEN (12, file="EMP_prot_boot_param.dat")
     DO k=1,(nt-kt)
-      WRITE(12,*) EMpoint(:,k)			!Escribim les e_b(t)	 
+      WRITE(12,*) EMpoint(:,k)			!Escribim les e_b(t)
     ENDDO					!Les files son t, fila 1 es t=1 asta 21
 						!Les columnes son b, columna 1 es b=1 asta 30
   CLOSE(12)
