@@ -105,8 +105,16 @@ for i in range(5,12):       #Temps inicial del fit
             return a * np.exp(-b * t) + c
 
         #Data del fit
+        X=[]
+        Y=[]
+        print(i)
+        print(f)
         X=np.array([float(x) for x in range(i,f+1)])
-        Y=np.array([float(yboot[x]) for x in range(i,f+1)])
+        Y=np.array([float(yboot[x-1]) for x in range(i,f+1)])
+
+        print(yboot)
+        print(X)
+        print(Y)
 
         #Fit
         popt_l, pcov_l = curve_fit(func_l, X, Y, p0=[1.19], maxfev=10000)
@@ -123,7 +131,7 @@ for i in range(5,12):       #Temps inicial del fit
             m=0
             for y in range(i,f+1):  #numero de x del yboot i eboot
             #per a yfit cal fer un index diferent pq ja comensa de la x corresponent -> n
-                chi_l=chi_l+(yboot[x-1]-yfit_l[n])*cov_[x-1][y-1]*(yboot[y-1]-yfit_l[m])
+                chi_l=chi_l+(yboot[x-1]-yfit_l)*cov_[x-1][y-1]*(yboot[y-1]-yfit_l)
                 chi_e=chi_e+(yboot[x-1]-yfit_e[n])*cov_[x-1][y-1]*(yboot[y-1]-yfit_e[m])
                 m+=1
             n+=1
@@ -141,7 +149,7 @@ for i in range(5,12):       #Temps inicial del fit
                 for x in range(i,f+1):
                     for y in range(i,f+1):
                         #Pas 6
-                        chib_l=chib_l+(E_b[x-1][b]-func_l(x-1,c))*cov_[x-1][y-1]*(E_b[y-1][b]-func(y-1,c))
+                        chib_l=chib_l+(E_b[x-1][b]-func_l(x-1,c))*cov_[x-1][y-1]*(E_b[y-1][b]-func_l(y-1,c))
                 return chib_l
 
             def fun_chib_e(c):
@@ -162,11 +170,11 @@ for i in range(5,12):       #Temps inicial del fit
 
             #Lineal
             res_l=minimize(fun_chib_l,c0,method='Nelder-Mead',tol=1e-6)
-            c_m_l=res.x[0]
+            c_m_l=res_l.x[0]
             cmin_l.append(c_m_l)
             #Exponencial
             res_e=minimize(fun_chib_e,x0,method='Nelder-Mead',bounds=bnds,tol=1e-6)
-            c_m_e=res.x[2]
+            c_m_e=res_e.x[2]
             cmin_e.append(c_m_e)
 
 
@@ -218,7 +226,9 @@ for i in range(5,12):       #Temps inicial del fit
 
         #Per fer el plot dels ajustos
         xplot=np.linspace(i,f,num=(f-i)*100)
-        yplot_l=func_l(xplot, *popt_l)
+        yplot_l=[]
+        for num in range(0,(f-i)*100):
+            yplot_l.append(func_l(xplot, *popt_l))
         yplot_e=func_e(xplot, *popt_e)
 
         plt.rc('text', usetex=True)
@@ -286,7 +296,7 @@ for i in range(5,12):       #Temps inicial del fit
         fig1.errorbar(xboot,yboot, yerr=eboot, c='#ED553B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Bootstrap")
         fig1.errorbar(xjack,yjack, yerr=ejack, c='#20639B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Jackknive")
         #Plot del ajust
-        plt.plot(xplot, yplot, 'r-', label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(popt))
+        plt.plot(xplot, yplot_e, 'r-', label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(popt_e))
         #Error de l'ajust
 
         plt.legend()
