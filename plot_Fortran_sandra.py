@@ -95,15 +95,6 @@ for i in range(5,12):       #Temps inicial del fit
 
     counter_f=0
     for f in j:              #Temps finals possibles
-        #Per a usar los valors de i i f com a x1 i x2 cal fer float(i), float(j)
-        #Ajust regressió lineal usant linealregresion de py
-        lr = linear_model.Lasso(alpha=1)
-        X=np.array([[x] for x in range(i,f+1)])
-        Y=np.array(tuple(yboot[x-1] for x in range(i,f+1)))
-
-
-        lr.fit(X, Y)
-        yfit = lr.predict(X)
 
         #Ajust lineal
         def func_l(t,c):
