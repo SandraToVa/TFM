@@ -97,12 +97,12 @@ for i in range(5,12):       #Temps inicial del fit
     for f in j:              #Temps finals possibles
 
         #Ajust lineal
-        def func_l(t,c):
-            return c
+        def func_l(t,d):
+            return d
 
         #Ajust exponencial
-        def func_e(t, c):   #[c=a,b,c]
-            return c[0] * np.exp(-c[1] * t) + c[2]
+        def func_e(t, a,b,c):
+            return a * np.exp(-b * t) + c
 
         #Data del fit
         X=np.array([float(x) for x in range(i,f+1)])
@@ -146,10 +146,13 @@ for i in range(5,12):       #Temps inicial del fit
 
             def fun_chib_e(c):
                 chib_e=0
+                def func_e2(t, c):
+                    return c[0] * np.exp(-c[1] * t) + c[2]
+
                 for x in range(i,f+1):
                     for y in range(i,f+1):
                         #Pas 6
-                        chib_e=chib_e+(E_b[x-1][b]-func_e(x-1,c))*cov_[x-1][y-1]*(E_b[y-1][b]-func_e(y-1,c))
+                        chib_e=chib_e+(E_b[x-1][b]-func_e2(x-1,c))*cov_[x-1][y-1]*(E_b[y-1][b]-func_e2(y-1,c))
                 return chib_e
 
             c0=[0.195] #First guess de la c
