@@ -115,7 +115,7 @@ for i in range(5,12):       #Temps inicial del fit
 
         #Fit
         popt_l, pcov_l = curve_fit(func_l, X, Y, p0=[1.19], maxfev=10000)
-        popt_e, pcov_e = curve_fit(func_e, X, Y, p0=[0,1,1.2], maxfev=10000, bounds=([0.,0.,1.],[1.,20,3.]))
+        popt_e, pcov_e = curve_fit(func_e, X, Y, p0=[0,1,1.2], maxfev=10000, bounds=([0.,0.,0.],[1.,20.,3.]))
 
         yfit_l=func_l(X, *popt_l)
         yfit_e=func_e(X, *popt_e)
@@ -163,7 +163,7 @@ for i in range(5,12):       #Temps inicial del fit
             c0=[1.95] #First guess de la c
 
             x0=[0.,1.,1.95] #First guesses de la a,b,c
-            bnds=((0.,1.),(0.,20.),(1.,3.))#Mateixos bounds que usats antes
+            bnds=((0.,1.),(0.,20.),(0.,3.))#Mateixos bounds que usats antes
 
             #Lineal
             res_l=minimize(fun_chib_l,c0,method='Nelder-Mead',tol=1e-6)
