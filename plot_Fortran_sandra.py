@@ -236,7 +236,7 @@ for i in range(5,12):       #Temps inicial del fit
         plt.subplots_adjust(left=0.08, bottom=0.08, right=0.98, top=0.95, wspace=0.21, hspace=0.2)
 
         #########################
-        #No cal fer un gràfic cada vegada -> Cal canviar-ho
+        #No cal fer un gràfic cada vegada pero m'ajuda a visualitzar l'ajust -> Cal canviar-ho quan tot vagi be
         #PLOT LINEAL
         fig1 = fig.add_subplot(1,1,1)
 
