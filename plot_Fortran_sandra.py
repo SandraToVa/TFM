@@ -112,13 +112,10 @@ for i in range(5,12):       #Temps inicial del fit
         X=np.array([float(x) for x in range(i,f+1)])
         Y=np.array([float(yboot[x-1]) for x in range(i,f+1)])
 
-        print(yboot)
-        print(X)
-        print(Y)
 
         #Fit
         popt_l, pcov_l = curve_fit(func_l, X, Y, p0=[1.19], maxfev=10000)
-        popt_e, pcov_e = curve_fit(func_e, X, Y, p0=[0,1,1.2], maxfev=10000, bounds=([0,-10,-10],[1.,10,10]))
+        popt_e, pcov_e = curve_fit(func_e, X, Y, p0=[0,1,1.2], maxfev=10000, bounds=([0.,0.,1.],[1.,20,3.]))
 
         yfit_l=func_l(X, *popt_l)
         yfit_e=func_e(X, *popt_e)
@@ -163,10 +160,10 @@ for i in range(5,12):       #Temps inicial del fit
                         chib_e=chib_e+(E_b[x-1][b]-func_e2(x-1,c))*cov_[x-1][y-1]*(E_b[y-1][b]-func_e2(y-1,c))
                 return chib_e
 
-            c0=[0.195] #First guess de la c
+            c0=[1.95] #First guess de la c
 
-            x0=[0.,1.,0.195] #First guesses de la a,b,c
-            bnds=((0.,1.),(-10.,10.),(-10.,10.))#Mateixos bounds que usats antes
+            x0=[0.,1.,1.95] #First guesses de la a,b,c
+            bnds=((0.,1.),(0.,20.),(1.,3.))#Mateixos bounds que usats antes
 
             #Lineal
             res_l=minimize(fun_chib_l,c0,method='Nelder-Mead',tol=1e-6)
@@ -214,9 +211,9 @@ for i in range(5,12):       #Temps inicial del fit
         central_e[counter_i].append(popt_e[2])
         sigma_e[counter_i].append(sigma_estad_e)
 
-        #L'error sistematic lo caluclo al final pero aqui lo poso per a poder fitejarlo
-        sigma_sist_l=0.006466904353966463
-        sigma_sist_e=0.01
+        #L'error sistematic lo caluclo al final pero aqui lo poso per a poder GRAFICAR
+        sigma_sist_l=0.006717993289348412
+        sigma_sist_e=0.19952003648979955
         #L'eror total es
         sigma_t_l=math.sqrt(sigma_sist_l**2+sigma_estad_l**2)
         sigma_t_e=math.sqrt(sigma_sist_e**2+sigma_estad_e**2)
@@ -317,13 +314,13 @@ print('* central =',central_l)
 print('* error estadistic =',sigma_l)
 
 #Millor resultat
-#Lo ajust lineal 4,0 te la chi2 més baixa en 10.95: 4 0 for 11 and 16 we get a= [0.] b= 1.19952
+#Lo ajust lineal 4,0 te la chi2 més baixa en 10.95: en lo fit 6 0
 #Per al error sistematic
 #Lo calcul de l'error sistematic es algo que faig ara al final despres de haver fet tota la resta. Agafo el millor fit: 40 que dona valor central[3][0]=1.1995200365039278
 #Restem aquest numero en tots los elements de la llista central
 flat_central=itertools.chain(*central_l) #Fem que central sigue una sola llista
 flat_central=list(flat_central)
-sistematic=[abs(elemento - central_l[4][0]) for elemento in flat_central]
+sistematic=[abs(elemento - central_l[6][0]) for elemento in flat_central]
 #Error sistematic es lo maxim error de la llista
 sist_l=max(sistematic)
 print('* error sistemàtic =',sist_l)
@@ -341,7 +338,7 @@ print('* error estadistic =',sigma_e)
 #Restem aquest numero en tots los elements de la llista central
 flat_central=itertools.chain(*central_e) #Fem que central sigue una sola llista
 flat_central=list(flat_central)
-sistematic=[abs(elemento - central_e[4][0]) for elemento in flat_central]
+sistematic=[abs(elemento - central_e[6][0]) for elemento in flat_central]
 #Error sistematic es lo maxim error de la llista
 sist_e=max(sistematic)
 print('* error sistemàtic =',sist_e)
