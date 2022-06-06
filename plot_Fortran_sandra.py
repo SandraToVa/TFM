@@ -112,8 +112,8 @@ for i in range(5,12):       #Temps inicial del fit
         popt_l, pcov_l = curve_fit(func_l, X, Y, p0=[1.19], maxfev=10000)
         popt_e, pcov_e = curve_fit(func_e, X, Y, p0=[0,1,1.2], maxfev=10000, bounds=([0,-10,-10],[1.,10,10]))
 
-        yfit_l=func(X, *popt_l)
-        yfit_e=func(X, *popt_e)
+        yfit_l=func_l(X, *popt_l)
+        yfit_e=func_e(X, *popt_e)
 
 
         chi_l=0
