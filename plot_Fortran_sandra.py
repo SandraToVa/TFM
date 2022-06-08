@@ -79,11 +79,14 @@ sigma_e=[[],[],[],[],[],[],[]]
 #error total = estad + sistem suma quadràtica
 error_t_l=[[],[],[],[],[],[],[]]
 error_t_e=[[],[],[],[],[],[],[]]
+#Llita en los fits de cada ajust
+fit_l=[[],[],[],[],[],[],[]]
+fit_e=[[],[],[],[],[],[],[]]
 
-for i in range(5,12):       #Temps inicial del fit
+for i in range(3,12):       #Temps inicial del fit
     #Lo valor minim del interval es 5
     counter_f=0
-    for f in j:              #Temps finals possibles
+    for f in range(i+5,17):              #Temps finals possibles
 
         #Mida de l'interval
         j=f-i+1
@@ -170,21 +173,28 @@ for i in range(5,12):       #Temps inicial del fit
 
             def fun_chib_l(c):
                 chib_l=0
+                n=0
                 for x in range(i,f+1):
+                    m=0
                     for y in range(i,f+1):
                         #Pas 6
-                        chib_l=chib_l+(E_b[x-1][b]-func_l(x-1,c))*cov_[x-1][y-1]*(E_b[y-1][b]-func_l(y-1,c))
+                        chib_l=chib_l+(E_b[x-1][b]-func_l(x-1,c))*cov_[n][m]*(E_b[y-1][b]-func_l(y-1,c))
+                        m+=1
+                    n+=1
                 return chib_l
 
             def fun_chib_e(c):
                 chib_e=0
                 def func_e2(t, c):
                     return c[0] * np.exp(-c[1] * t) + c[2]
-
+                n=0
                 for x in range(i,f+1):
+                    m=0
                     for y in range(i,f+1):
                         #Pas 6
-                        chib_e=chib_e+(E_b[x-1][b]-func_e2(x-1,c))*cov_[x-1][y-1]*(E_b[y-1][b]-func_e2(y-1,c))
+                        chib_e=chib_e+(E_b[x-1][b]-func_e2(x-1,c))*cov_[n][m]*(E_b[y-1][b]-func_e2(y-1,c))
+                        m+=1
+                    n+=1
                 return chib_e
 
             c0=[1.95] #First guess de la c
@@ -206,7 +216,7 @@ for i in range(5,12):       #Temps inicial del fit
         #lineal
         cmin_l.sort()   #ordeno la llista de petit a gran
         cmin_l=np.array(cmin_l)
-        cmin_l=[elemento - popt_l[0] for elemento in cmin_l]    #llista de les c-\bar{c}
+        cmin_l=[elemento - c_l[0] for elemento in cmin_l]    #llista de les c-\bar{c}
         q_5=0
         q_1=0
 
@@ -278,7 +288,7 @@ for i in range(5,12):       #Temps inicial del fit
         fig1.yaxis.set_ticks_position('both')
         fig1.xaxis.set_ticks_position('both')
         fig1.errorbar(xboot,yboot, yerr=eboot, c='#ED553B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Bootstrap")
-        fig1.errorbar(xjack,yjack, yerr=ejack, c='#20639B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Jackknive")
+        ##fig1.errorbar(xjack,yjack, yerr=ejack, c='#20639B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Jackknive")
         #Plot del ajust
         plt.plot(xplot, yplot_l, 'r-', label='fit: c=%5.3f' % tuple(c_l))
         #Error de l'ajust
@@ -318,7 +328,7 @@ for i in range(5,12):       #Temps inicial del fit
         fig1.yaxis.set_ticks_position('both')
         fig1.xaxis.set_ticks_position('both')
         fig1.errorbar(xboot,yboot, yerr=eboot, c='#ED553B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Bootstrap")
-        fig1.errorbar(xjack,yjack, yerr=ejack, c='#20639B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Jackknive")
+        ##fig1.errorbar(xjack,yjack, yerr=ejack, c='#20639B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Jackknive")
         #Plot del ajust
         plt.plot(xplot, yplot_e, 'r-', label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(c_e))
         #Error de l'ajust
