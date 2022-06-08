@@ -7,6 +7,7 @@ import matplotlib as mpl
 import math
 import itertools
 import matplotlib.patches as patches
+from matplotlib.patches import Polygon
 
 #mpl.rcParams['text.usetex'] = True
 #mpl.rcParams['text.latex.preview'] = True
@@ -26,14 +27,15 @@ yboot = [float(row.split()[1]) for row in data]
 eboot = [float(row.split()[2]) for row in data]
 
 # MI: crec que no cal utilitzar les dades de jack, ja que nomes fas servir les de bootstrap
+#S: quan tot funcioni be repetiré el procediment per ales dades de jack
 
-with open('EMP_prot_jack.dat', 'r') as f:
-    data = f.read()
+##with open('EMP_prot_jack.dat', 'r') as f:
+##    data = f.read()
 
-data = data.split('\n')[:-1]
-xjack = [float(row.split()[0])+0.1 for row in data]
-yjack = [float(row.split()[1]) for row in data]
-ejack = [float(row.split()[2]) for row in data]
+##data = data.split('\n')[:-1]
+##xjack = [float(row.split()[0])+0.1 for row in data]
+##yjack = [float(row.split()[1]) for row in data]
+##ejack = [float(row.split()[2]) for row in data]
 
 #Per calulcar chi2 i cov matriu
 
@@ -53,34 +55,19 @@ E_b=np.array([[float(i) for i in row.split()] for row in data])
 t=[i for i in range(1,nt+1)]
 b=[i for i in range(1,nboot+1)]
 
-#Calulem la matriu de covariancia per a tots los t
-#t i t' van de =[1,21] matriu de 21x21
-cov=[[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]  # MI: millor fer cov = np.zeroes((nt-1,nt-1))
-
-for l in range(0,nt-1): #l files de cov, t
-    for c in range(0,nt-1): #c columnes de cov, t'
-        suma=0
-        for p in range(0,nboot): #sumatori de les b per acada element de la matriu t,t'
-            suma=suma+(E_b[l][p]-yboot[l])*(E_b[c][p]-yboot[c])
-        suma=(nsc/(nsc+1))*(1/nboot)*suma
-        cov[l].append(suma) # MI: despres es cov[l][c] = suma
-cov=np.array(cov)
-
-# MI: no pots calcular la inversa al principi, ja que depen de quin interval de temps fas el fit. Per exemple, la inversa de la matriu entre ti=5 i tf=17 es diferent a la inversa per ti=8 i tf=16.
-cov_=np.linalg.inv(cov)     #inversa de la matriu covariant
-
 #Faig un loop en diferents temps
 
 #L'ajust y=b te sentit en x>7 si x<7 cal afegir una exponencial negativa e^-En·x (pq hi ha contaminació de estats excitats). Per tant a temps llargs domina E_0 estat de energia més baix
 #Difrents proves: y=b i anar variant lo rang per veure com varia la qualitat del ajust el valor b que seria la massa E_0 del sistema; y=b+e^ax
 #Fem que tot sige los mateixos intervals, de 5 fins 17 en intervals de mida 5 minim
 
-#AgAfo i faig un fit y=b en un interval x1-x2 me dona un valor central i un valor estadistic. Vario lo interval i cada fit de estos dona central i estadistic. A banda podem posar-li una exponencial. La diferencia més gran entre el valor central de estos fits i lo meu escollit es lo error sistematic.
+#Agafo i faig un fit y=b en un interval x1-x2 me dona un valor central i un valor estadistic. Vario lo interval i cada fit de estos dona central i estadistic. A banda podem posar-li una exponencial. La diferencia més gran entre el valor central de estos fits i lo meu escollit es lo error sistematic.
 
 
 counter_i=0
 #chi square
 # MI: millor definir chi2,central,sigma,error = np.zeros(dimension)
+#S: vaig pensar de fer-ho aixió però llavors obtenc una matriu cuadrada però no es el cas i per no tindre els zeros per allí em va millor així
 chi2_l=[[],[],[],[],[],[],[]] #lineal
 chi2_e=[[],[],[],[],[],[],[]]
 #valor central
@@ -95,11 +82,23 @@ error_t_e=[[],[],[],[],[],[],[]]
 
 for i in range(5,12):       #Temps inicial del fit
     #Lo valor minim del interval es 5
-    j=[j for j in range(i+5,17)]
-
     counter_f=0
-    # MI: cal definir j? (crec que no la fas servir enlloc mes). Potser millor fer "for f in range(i+5,17):"
     for f in j:              #Temps finals possibles
+
+        #Mida de l'interval
+        j=f-i+1
+        #Definim la matriu de covariancia que usarem a cada interval
+        cov=np.zeros((j,j))
+
+        for l in range(j): #l files de cov, t
+            for c in range(j): #c columnes de cov, t'
+                suma=0
+                for p in range(0,nboot): #sumatori de les b per acada element de la matriu t,t'
+                    suma=suma+(E_b[l][p]-yboot[l])*(E_b[c][p]-yboot[c])
+                suma=(nsc/(nsc+1))*(1/nboot)*suma
+                cov[l][c]=suma
+        cov=np.array(cov)
+        cov_=np.linalg.inv(cov)     #inversa de la matriu covariant
 
         #Ajust lineal
         def func_l(t,d):
@@ -109,35 +108,57 @@ for i in range(5,12):       #Temps inicial del fit
         def func_e(t, a,b,c):
             return a * np.exp(-b * t) + c
 
-        #Data del fit
-        X=[]
-        Y=[]
-        print(i)
-        print(f)
-        X=np.array([float(x) for x in range(i,f+1)])
-        Y=np.array([float(yboot[x-1]) for x in range(i,f+1)])
+        #Trobem lo millor fit minimitzant la chi2
+        #Com la matriu cov ja esta feta per a aquest interval de temps corresponent, creo dos contadors: n,m
 
+        def fun_chi_l(c):
+            chi_l=0
+            n=0
+            for x in range(i,f+1):
+                m=0
+                for y in range(i,f+1):
+                    #Pas 6
+                    chi_l=chi_l+(yboot[x-1]-func_l(x-1,c))*cov_[n][m]*(yboot[y-1]-func_l(y-1,c))
+                    m+=1
+                n+=1
+            return chi_l
 
-        #Fit
-        # MI: fes servir minimize, ja que amv curve_fit no tens en compte la matriu de covariancia (has de definir un chi2)
-        popt_l, pcov_l = curve_fit(func_l, X, Y, p0=[1.19], maxfev=10000)
-        popt_e, pcov_e = curve_fit(func_e, X, Y, p0=[0,1,1.2], maxfev=10000, bounds=([0.,0.,0.],[1.,20.,3.]))
+        def fun_chi_e(c):
+            chi_e=0
+            def func_e2(t, c):
+                return c[0] * np.exp(-c[1] * t) + c[2]
+            n=0
+            for x in range(i,f+1):
+                m=0
+                for y in range(i,f+1):
+                    #Pas 6
+                    chi_e=chi_e+(yboot[x-1]-func_e2(x-1,c))*cov_[n][m]*(yboot[y-1]-func_e2(y-1,c))
+                    m+=1
+                n+=1
+            return chi_e
 
-        yfit_l=func_l(X, *popt_l)
-        yfit_e=func_e(X, *popt_e)
+        c0=[1.95] #First guess de la c
 
+        x0=[0.,1.,1.95] #First guesses de la a,b,c
+        bnds=((0.,1.),(-20.,20.),(-3.,3.))#Mateixos bounds que usats antes
 
-        chi_l=0
-        chi_e=0
-        n=0
-        for x in range(i,f+1):
-            m=0
-            for y in range(i,f+1):  #numero de x del yboot i eboot
-            #per a yfit cal fer un index diferent pq ja comensa de la x corresponent -> n
-                chi_l=chi_l+(yboot[x-1]-yfit_l)*cov_[x-1][y-1]*(yboot[y-1]-yfit_l)
-                chi_e=chi_e+(yboot[x-1]-yfit_e[n])*cov_[x-1][y-1]*(yboot[y-1]-yfit_e[m])
-                m+=1
-            n+=1
+        #Lineal
+        res_l=minimize(fun_chi_l,c0,method='Nelder-Mead',tol=1e-6)
+        c_l=res_l.x
+        central_l[counter_i].append(c_l[0])
+        fit_l[counter_i].append(c_l)
+        #Exponencial
+        res_e=minimize(fun_chi_e,x0,method='Nelder-Mead',bounds=bnds,tol=1e-6)
+        c_e=res_e.x
+        central_e[counter_i].append(c_e[2])
+        fit_e[counter_i].append(c_e)
+
+        #En aixó hem trobat los valors de les c i c_llista que minimitzen la chi2
+        #Ara calculem la chi en estos valors
+        chi_l=fun_chi_l(res_l.x[0])
+        chi2_l[counter_i].append(chi_l)
+        chi_e=fun_chi_e(res_e.x)
+        chi2_e[counter_i].append(chi_e)
 
 
         #Ajust del fit minimitzant la chi2 ymin=c
@@ -169,7 +190,7 @@ for i in range(5,12):       #Temps inicial del fit
             c0=[1.95] #First guess de la c
 
             x0=[0.,1.,1.95] #First guesses de la a,b,c
-            bnds=((0.,1.),(0.,20.),(0.,3.))#Mateixos bounds que usats antes
+            bnds=((0.,1.),(-20.,20.),(-3.,3.))#Mateixos bounds que usats antes
 
             #Lineal
             res_l=minimize(fun_chib_l,c0,method='Nelder-Mead',tol=1e-6)
@@ -198,7 +219,7 @@ for i in range(5,12):       #Temps inicial del fit
         #exponencial
         cmin_e.sort()
         cmin_e=np.array(cmin_e)
-        cmin_e=[abs(elemento - popt_e[2]) for elemento in cmin_e]
+        cmin_e=[abs(elemento - c_e[2]) for elemento in cmin_e]
         q_5=0
         q_1=0
 
@@ -209,17 +230,13 @@ for i in range(5,12):       #Temps inicial del fit
         #Calculem la sigma
         sigma_estad_e=(q_5-q_1)/2
 
-        #Afegim a les matrius lo valor de chi square, lo valor central de l'ajust=la constant i el valor estadistic
-        chi2_l[counter_i].append(chi_l)
-        central_l[counter_i].append(popt_l[0])
+        #Afegim a les matrius el valor estadistic
         sigma_l[counter_i].append(sigma_estad_l)
-        chi2_e[counter_i].append(chi_e)
-        central_e[counter_i].append(popt_e[2])
         sigma_e[counter_i].append(sigma_estad_e)
 
         #L'error sistematic lo caluclo al final pero aqui lo poso per a poder GRAFICAR
-        sigma_sist_l=0.006717993289348412
-        sigma_sist_e=0.19952003648979955
+        sigma_sist_l=0.008096981048583585
+        sigma_sist_e=0.007179748087030813
         #L'eror total es
         sigma_t_l=math.sqrt(sigma_sist_l**2+sigma_estad_l**2)
         sigma_t_e=math.sqrt(sigma_sist_e**2+sigma_estad_e**2)
@@ -231,8 +248,12 @@ for i in range(5,12):       #Temps inicial del fit
         xplot=np.linspace(i,f,num=(f-i)*100)
         yplot_l=[]
         for num in range(0,(f-i)*100):
-            yplot_l.append(func_l(xplot, *popt_l))
-        yplot_e=func_e(xplot, *popt_e)
+            yplot_l.append(func_l(xplot, c_l[0]))
+        yplot_e=func_e(xplot, c_e[0],c_e[1],c_e[2])
+        c_sup=c_e[2]+sigma_t_e
+        c_inf=c_e[2]-sigma_t_e
+        yplot_sup=func_e(xplot, c_e[0],c_e[1],c_sup)
+        yplot_inf=func_e(xplot, c_e[0],c_e[1],c_inf)
 
         plt.rc('text', usetex=True)
         plt.rc('font', family='serif', size='12')
@@ -259,11 +280,11 @@ for i in range(5,12):       #Temps inicial del fit
         fig1.errorbar(xboot,yboot, yerr=eboot, c='#ED553B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Bootstrap")
         fig1.errorbar(xjack,yjack, yerr=ejack, c='#20639B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Jackknive")
         #Plot del ajust
-        plt.plot(xplot, yplot_l, 'r-', label='fit: c=%5.3f' % tuple(popt_l))
+        plt.plot(xplot, yplot_l, 'r-', label='fit: c=%5.3f' % tuple(c_l))
         #Error de l'ajust
         fig1.add_patch(
             patches.Rectangle(
-                (i, popt_l[0]-sigma_t_l), #Esquina inferior izquierda
+                (i, c_l[0]-sigma_t_l), #Esquina inferior izquierda
                 f-i,                        #Ancho
                 2*sigma_t_l,
                 edgecolor = 'white',
@@ -299,8 +320,11 @@ for i in range(5,12):       #Temps inicial del fit
         fig1.errorbar(xboot,yboot, yerr=eboot, c='#ED553B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Bootstrap")
         fig1.errorbar(xjack,yjack, yerr=ejack, c='#20639B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Jackknive")
         #Plot del ajust
-        plt.plot(xplot, yplot_e, 'r-', label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(popt_e))
+        plt.plot(xplot, yplot_e, 'r-', label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(c_e))
         #Error de l'ajust
+        verts = [(i,yplot_inf[0]), *zip(xplot, yplot_sup), (f,yplot_inf[(f-i)*100-1]), *zip(xplot, yplot_inf)]
+        poly = Polygon(verts, facecolor='#ffcccc', edgecolor='white')
+        fig1.add_patch(poly)
 
         plt.legend()
         #plt.show()
@@ -317,10 +341,11 @@ for i in range(5,12):       #Temps inicial del fit
 print('LINEAL###############################')
 print('* chi2 =',chi2_l)
 print('* central =',central_l)
+print('* fit =',fit_l)  #Comprovo que es lo mateix q el central
 print('* error estadistic =',sigma_l)
 
 #Millor resultat
-#Lo ajust lineal 4,0 te la chi2 més baixa en 10.95: en lo fit 6 0
+#Lo ajust lineal 6,0 te la chi2 més baixa en 7.9870471334047
 #Per al error sistematic
 #Lo calcul de l'error sistematic es algo que faig ara al final despres de haver fet tota la resta. Agafo el millor fit: 40 que dona valor central[3][0]=1.1995200365039278
 #Restem aquest numero en tots los elements de la llista central
@@ -335,10 +360,11 @@ print('* error total =',error_t_l)
 print('EXPONENCIAL###############################')
 print('* chi2 =',chi2_e)
 print('* central =',central_e)
+print('* fit =',fit_e)
 print('* error estadistic =',sigma_e)
 
 #Millor resultat
-#Lo ajust lineal 4,0 te la chi2 més baixa en 10.95: 4 0 for 11 and 16 we get a= [0.] b= 1.19952
+#Lo ajust lineal 6,0 te la chi2 més baixa en 7.987054040388158
 #Per al error sistematic
 #Lo calcul de l'error sistematic es algo que faig ara al final despres de haver fet tota la resta. Agafo el millor fit: 40 que dona valor central[3][0]=1.1995200365039278
 #Restem aquest numero en tots los elements de la llista central
