@@ -68,20 +68,20 @@ counter_i=0
 #chi square
 # MI: millor definir chi2,central,sigma,error = np.zeros(dimension)
 #S: vaig pensar de fer-ho aixió però llavors obtenc una matriu cuadrada però no es el cas i per no tindre els zeros per allí em va millor així
-chi2_l=[[],[],[],[],[],[],[]] #lineal
-chi2_e=[[],[],[],[],[],[],[]]
+chi2_l=[[],[],[],[],[],[],[],[],[]] #lineal
+chi2_e=[[],[],[],[],[],[],[],[],[]]
 #valor central
-central_l=[[],[],[],[],[],[],[]]
-central_e=[[],[],[],[],[],[],[]]
+central_l=[[],[],[],[],[],[],[],[],[]]
+central_e=[[],[],[],[],[],[],[],[],[]]
 #error estadistic
-sigma_l=[[],[],[],[],[],[],[]]
-sigma_e=[[],[],[],[],[],[],[]]
+sigma_l=[[],[],[],[],[],[],[],[],[]]
+sigma_e=[[],[],[],[],[],[],[],[],[]]
 #error total = estad + sistem suma quadràtica
-error_t_l=[[],[],[],[],[],[],[]]
-error_t_e=[[],[],[],[],[],[],[]]
+error_t_l=[[],[],[],[],[],[],[],[],[]]
+error_t_e=[[],[],[],[],[],[],[],[],[]]
 #Llita en los fits de cada ajust
-fit_l=[[],[],[],[],[],[],[]]
-fit_e=[[],[],[],[],[],[],[]]
+fit_l=[[],[],[],[],[],[],[],[],[]]
+fit_e=[[],[],[],[],[],[],[],[],[]]
 
 for i in range(3,12):       #Temps inicial del fit
     #Lo valor minim del interval es 5
@@ -245,8 +245,8 @@ for i in range(3,12):       #Temps inicial del fit
         sigma_e[counter_i].append(sigma_estad_e)
 
         #L'error sistematic lo caluclo al final pero aqui lo poso per a poder GRAFICAR
-        sigma_sist_l=0.008096981048583585
-        sigma_sist_e=0.007179748087030813
+        sigma_sist_l=0.009890441894531143
+        sigma_sist_e=0.010645880779658778
         #L'eror total es
         sigma_t_l=math.sqrt(sigma_sist_l**2+sigma_estad_l**2)
         sigma_t_e=math.sqrt(sigma_sist_e**2+sigma_estad_e**2)
@@ -332,8 +332,8 @@ for i in range(3,12):       #Temps inicial del fit
         #Plot del ajust
         plt.plot(xplot, yplot_e, 'r-', label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(c_e))
         #Error de l'ajust
-        verts = [(i,yplot_inf[0]), *zip(xplot, yplot_sup), (f,yplot_inf[(f-i)*100-1]), *zip(xplot, yplot_inf)]
-        poly = Polygon(verts, facecolor='#ffcccc', edgecolor='white')
+        verts = [*zip(xplot, yplot_inf), (i,yplot_inf[0]), *zip(xplot, yplot_sup), (f,yplot_inf[(f-i)*100-1])]
+        poly = Polygon(verts, facecolor='#ffcccc', edgecolor='#ffcccc')
         fig1.add_patch(poly)
 
         plt.legend()
@@ -355,13 +355,13 @@ print('* fit =',fit_l)  #Comprovo que es lo mateix q el central
 print('* error estadistic =',sigma_l)
 
 #Millor resultat
-#Lo ajust lineal 6,0 te la chi2 més baixa en 7.9870471334047
+#Lo ajust lineal 0,1 te la chi2 més baixa en 7.263617072777405
 #Per al error sistematic
 #Lo calcul de l'error sistematic es algo que faig ara al final despres de haver fet tota la resta. Agafo el millor fit: 40 que dona valor central[3][0]=1.1995200365039278
 #Restem aquest numero en tots los elements de la llista central
 flat_central=itertools.chain(*central_l) #Fem que central sigue una sola llista
 flat_central=list(flat_central)
-sistematic=[abs(elemento - central_l[6][0]) for elemento in flat_central]
+sistematic=[abs(elemento - central_l[0][1]) for elemento in flat_central]
 #Error sistematic es lo maxim error de la llista
 sist_l=max(sistematic)
 print('* error sistemàtic =',sist_l)
