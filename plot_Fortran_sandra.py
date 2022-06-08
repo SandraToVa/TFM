@@ -25,6 +25,8 @@ xboot = [float(row.split()[0]) for row in data]
 yboot = [float(row.split()[1]) for row in data]
 eboot = [float(row.split()[2]) for row in data]
 
+# MI: crec que no cal utilitzar les dades de jack, ja que nomes fas servir les de bootstrap
+
 with open('EMP_prot_jack.dat', 'r') as f:
     data = f.read()
 
@@ -53,7 +55,7 @@ b=[i for i in range(1,nboot+1)]
 
 #Calulem la matriu de covariancia per a tots los t
 #t i t' van de =[1,21] matriu de 21x21
-cov=[[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]
+cov=[[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]  # MI: millor fer cov = np.zeroes((nt-1,nt-1))
 
 for l in range(0,nt-1): #l files de cov, t
     for c in range(0,nt-1): #c columnes de cov, t'
@@ -61,9 +63,10 @@ for l in range(0,nt-1): #l files de cov, t
         for p in range(0,nboot): #sumatori de les b per acada element de la matriu t,t'
             suma=suma+(E_b[l][p]-yboot[l])*(E_b[c][p]-yboot[c])
         suma=(nsc/(nsc+1))*(1/nboot)*suma
-        cov[l].append(suma)
+        cov[l].append(suma) # MI: despres es cov[l][c] = suma
 cov=np.array(cov)
 
+# MI: no pots calcular la inversa al principi, ja que depen de quin interval de temps fas el fit. Per exemple, la inversa de la matriu entre ti=5 i tf=17 es diferent a la inversa per ti=8 i tf=16.
 cov_=np.linalg.inv(cov)     #inversa de la matriu covariant
 
 #Faig un loop en diferents temps
@@ -77,6 +80,7 @@ cov_=np.linalg.inv(cov)     #inversa de la matriu covariant
 
 counter_i=0
 #chi square
+# MI: millor definir chi2,central,sigma,error = np.zeros(dimension)
 chi2_l=[[],[],[],[],[],[],[]] #lineal
 chi2_e=[[],[],[],[],[],[],[]]
 #valor central
@@ -94,6 +98,7 @@ for i in range(5,12):       #Temps inicial del fit
     j=[j for j in range(i+5,17)]
 
     counter_f=0
+    # MI: cal definir j? (crec que no la fas servir enlloc mes). Potser millor fer "for f in range(i+5,17):"
     for f in j:              #Temps finals possibles
 
         #Ajust lineal
@@ -114,6 +119,7 @@ for i in range(5,12):       #Temps inicial del fit
 
 
         #Fit
+        # MI: fes servir minimize, ja que amv curve_fit no tens en compte la matriu de covariancia (has de definir un chi2)
         popt_l, pcov_l = curve_fit(func_l, X, Y, p0=[1.19], maxfev=10000)
         popt_e, pcov_e = curve_fit(func_e, X, Y, p0=[0,1,1.2], maxfev=10000, bounds=([0.,0.,0.],[1.,20.,3.]))
 
