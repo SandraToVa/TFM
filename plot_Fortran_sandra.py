@@ -92,6 +92,17 @@ def func_l(t,d):
 def func_e(t, a,b,c):
     return a * np.exp(-b * t) + c
 
+#Matriu de covariància per a tots els Temps=cov_t
+cov_t=np.zeros((nt-1,nt-1))
+for l in range(0,nt-1): #l files de cov, t
+    for c in range(0,nt-1): #c columnes de cov, t'
+        suma=0
+        for p in range(0,nboot): #sumatori de les b per acada element de la matriu t,t'
+            suma=suma+(E_b[l][p]-yboot[l])*(E_b[c][p]-yboot[c])
+        suma=(nsc/(nsc-1))*(1/nboot)*suma
+        cov_t[l][c]=suma
+cov_t=np.array(cov_t)
+
 for i in range(3,12):       #Temps inicial del fit
     #Lo valor minim del interval es 5
     counter_f=0
@@ -99,22 +110,12 @@ for i in range(3,12):       #Temps inicial del fit
 
         #Mida de l'interval
         j=f-i+1
-        #Definim la matriu de covariancia que usarem a cada interval
-        cov=np.zeros((j,j))
-
-        for l in range(j): #l files de cov, t
-            for c in range(j): #c columnes de cov, t'
-                suma=0
-                for p in range(0,nboot): #sumatori de les b per acada element de la matriu t,t'
-                    suma=suma+(E_b[l][p]-yboot[l])*(E_b[c][p]-yboot[c])
-                suma=(nsc/(nsc+1))*(1/nboot)*suma
-                cov[l][c]=suma
-        cov=np.array(cov)
+        #Matriu de covariància per a cada interval de Temps=cov
+        cov=[]
+        cov=cov_t[i-1:f,i-1:f]
         cov_=np.linalg.inv(cov)     #inversa de la matriu covariant
-
         #Trobem lo millor fit minimitzant la chi2
         #Com la matriu cov ja esta feta per a aquest interval de temps corresponent, creo dos contadors: n,m
-
         def fun_chi_l(c):
             chi_l=0
             n=0
@@ -302,8 +303,8 @@ for i in range(3,12):       #Temps inicial del fit
         sigma_e[counter_i].append(sigma_estad_e)
 
         #L'error sistematic lo caluclo al final pero aqui lo poso per a poder GRAFICAR
-        sigma_sist_l=0.009890441894531143
-        sigma_sist_e=0.010645880779658778
+        sigma_sist_l=0.010406684875488015
+        sigma_sist_e=0.09697668677474058
         #L'eror total es
         sigma_t_l=math.sqrt(sigma_sist_l**2+sigma_estad_l**2)
         sigma_t_e=math.sqrt(sigma_sist_e**2+sigma_estad_e**2)
@@ -422,7 +423,7 @@ for i in range(3,12):       #Temps inicial del fit
 print('LINEAL###############################')
 print('* chi2 =',chi2_l)
 print('* central =',central_l)
-print('* fit =',fit_l)  #Comprovo que es lo mateix q el central
+#print('* fit =',fit_l)  #Comprovo que es lo mateix q el central
 print('* error estadistic =',sigma_l)
 
 #Millor resultat
@@ -488,7 +489,7 @@ plt.close('all')
 print('EXPONENCIAL###############################')
 print('* chi2 =',chi2_e)
 print('* central =',central_e)
-print('* fit =',fit_e)
+#print('* fit =',fit_e)
 print('* error estadistic =',sigma_e)
 
 #Millor resultat
