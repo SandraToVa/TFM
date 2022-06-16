@@ -276,23 +276,18 @@ for i in range(3,12):       #Temps inicial del fit
         f_sup=[]    #llista dels valors per a cada t del quantile 5/6
         f_inf=[]    # """" 1/6
         t_errors=np.linspace(i,f,f-i)
-        
+
         # MI: calcular primer els valors aleatoris
-        a=np.random.norma(c_e[0],delta_e[0],1000)
-        b=np.random.norma(c_e[1],delta_e[1],1000)
-        c=np.random.norma(c_e[2],delta_e[2],1000)
+        a=np.random.normal(c_e[0],delta_e[0],1000)
+        b=np.random.normal(c_e[1],delta_e[1],1000)
+        c=np.random.normal(c_e[2],delta_e[2],1000)
         for t in range(i,f):
             f_t=[]  #f_t=llista de el valor de la funció usant los 1000 numeros aleatoris
             for n in range(0,1000):
-#                a=random.gauss(c_e[0],delta_e[0])
-#                b=random.gauss(c_e[1],delta_e[1])
-#                c=random.gauss(c_e[2],delta_e[2])
                 f_t.append(func_e(t,a[n],b[n],c[n]))
 
             f_t.sort()
             f_t=np.array(f_t)                #ordeno la Llista
-            #f_ajust=func_e(t,c_e[0],c_e[1],c_e[2])  #valor de l'ajust optim
-            #f_t=[abs(elemento - f_ajust) for elemento in f_t]
 
             q_5=np.quantile(f_t,5./6)
             q_1=np.quantile(f_t,1./6)
@@ -391,12 +386,7 @@ for i in range(3,12):       #Temps inicial del fit
         #Plot del ajust
         plt.plot(xplot, yplot_e, 'r-', label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(c_e))
         #Error de l'ajust
-        #plt.plot(t_errors, f_sup, c='#ffcccc')
-        #plt.plot(t_errors, f_inf, c='#ffcccc')
         plt.fill_between(t_errors, f_sup, f_inf, color='#ffcccc') #MI: el representa la banda, en comptes de les dues linies
-        ##verts = [*zip(xplot, yplot_inf), (i,yplot_inf[0]), *zip(xplot, yplot_sup), (f,yplot_inf[(f-i)*100-1])]
-        ##poly = Polygon(verts, facecolor='#ffcccc', edgecolor='#ffcccc')
-        ##fig1.add_patch(poly)
 
         plt.legend()
         #plt.show()
@@ -544,12 +534,7 @@ fig1.errorbar(xboot,yboot, yerr=eboot, c='#ED553B', ls='None', marker='o', marke
 #Plot del ajust
 plt.plot(xplot, yplot_e, 'r-', label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(millor_c_e))
 #Error de l'ajust
-#plt.plot(t_errors, millor_f_sup, c='#ffcccc')
-#plt.plot(t_errors, millor_f_inf, c='#ffcccc')
 plt.fill_between(t_errors, millor_f_sup, millor_f_inf, color='#ffcccc') #MI: el representa la banda, en comptes de les dues linies
-##verts = [*zip(xplot, yplot_inf), (i,yplot_inf[0]), *zip(xplot, yplot_sup), (f,yplot_inf[(f-i)*100-1])]
-##poly = Polygon(verts, facecolor='#ffcccc', edgecolor='#ffcccc')
-##fig1.add_patch(poly)
 
 plt.legend()
 #plt.show()
