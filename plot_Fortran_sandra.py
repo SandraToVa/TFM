@@ -17,14 +17,66 @@ from scipy.optimize import curve_fit
 from scipy.optimize import minimize
 
 
+nsc=29  #N
+nt=22
+nboot=30    #Nb
+nsc_=1./nsc
+nsc1_=1./(nsc-1)
+nboot_=1./nboot
+nbot_=1./(nboot-1)
+#Creem les dades de Bootstrap - emp_boot.f90
+#1. Llegim les dades Ci(t)
+with open('prot_SP.dat', 'r') as f:
+    data=f.read()
+data = data.split('\n')
+blck=np.array([[float(i) for i in row.split()] for row in data])   #Columnes=k=t i files=i de 1 a N
 
-with open('EMP_prot_boot.dat', 'r') as f:
-    data = f.read()
+pmean=np.zeros(nt)
+for k in range(0,nt):
+    suma=0
+    for i in range(0,nsc):
+        suma=suma+blck[i][k]
+    pmean[k]=suma*nsc_
+#2. Creem les Cb(t)
+x=np.zeros((nsc,nboot))  #Matriu de num aleatoris entre 0 i 1
+for i in range(0,nsc):
+    for k in range(0,nt):
+        x[i][k]=np.random.uniform()
+pmeanboot=np.zeros((nboot,nt))
+for k in range(0,nt):
+    for j in range(0,nboot):
+        boot=0.
+        for i in range(0,nsc):
+            boot=boot+blck[int(x[i][j]*nsc)][k]
+        pmeanboot[j][k]=boot*nsc_   #Ara hem generat les Nb bootstrap samples Cb(t)
+#3. Calculem Eb(t)
+kt=1
+EMpoint=0.
+EMpoint=np.zeros((nboot,(nt-kt)))
+for k in range(0,(nt-kt)):
+    for j in range(0,nboot):
+        EMpoint[j][k]=np.log(pmeanboot[j][k]/pmeanboot[j][k+kt])/kt
 
-data = data.split('\n')[:-1]
-xboot = [float(row.split()[0]) for row in data]
-yboot = [float(row.split()[1]) for row in data]
-eboot = [float(row.split()[2]) for row in data]
+#Clculem \Bar{E}(t) i errors
+mean=np.zeros(nt-kt)
+for k in range(0,(nt-kt)):
+    suma=0
+    for j in range(0,nboot):
+        suma=suma+EMpoint[j][k]
+    mean[k]=suma*nboot_
+sigm=np.zeros(nt-kt)
+for k in range(0,(nt-kt)):
+    sigma=0
+    for j in range(0,nboot):
+        sigma=sigma+(EMpoint[j][k]-mean[k])*(EMpoint[j][k]-mean[k])
+    sigm[k]=np.sqrt(sigma*nboot_*nsc*nsc1_)
+#Dades
+xboot=list(range(1, nt))
+yboot=mean
+eboot=sigm
+print(xboot)
+print(yboot)    #########Dona massa alt! re mirar
+print(eboot)
 
 # MI: crec que no cal utilitzar les dades de jack, ja que nomes fas servir les de bootstrap
 #S: quan tot funcioni be repetiré el procediment per ales dades de jack
@@ -39,9 +91,7 @@ eboot = [float(row.split()[2]) for row in data]
 
 #Per calulcar chi2 i cov matriu
 
-nsc=29
-nt=22
-nboot=30
+
 
 
 with open('EMP_prot_boot_param.dat', 'r') as f:
