@@ -74,9 +74,11 @@ for k in range(0,(nt-kt)):
 xboot=list(range(1, nt))
 yboot=mean
 eboot=sigm
+E_b=EMpoint
 print(xboot)
 print(yboot)    #########Dona massa alt! re mirar
 print(eboot)
+print(E_b)
 
 # MI: crec que no cal utilitzar les dades de jack, ja que nomes fas servir les de bootstrap
 #S: quan tot funcioni be repetiré el procediment per ales dades de jack
@@ -94,12 +96,7 @@ print(eboot)
 
 
 
-with open('EMP_prot_boot_param.dat', 'r') as f:
-    data = f.read()
 
-data = data.split('\n')[:-1]
-#Files lo t comensant en t=1 i acabant en 21. Columnes b. [t=1[b],t=2[b],...]
-E_b=np.array([[float(i) for i in row.split()] for row in data])
 #Los primers index son 0
 
 t=[i for i in range(1,nt+1)]
