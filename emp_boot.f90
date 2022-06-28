@@ -26,6 +26,7 @@ PROGRAM PLOT_EMP
 
   ALLOCATE(x(nsc,nboot))
   call random_number(x)				!Numero aleatori de configuracions
+
   DO k=1,nt
     DO j=1,nboot
       boot =0.D0
@@ -41,6 +42,7 @@ PROGRAM PLOT_EMP
   DO k=1,(nt-kt)							!k=t
     DO j=1,nboot							!j=b
         EMpoint(j,k)=log(pmeanboot(j,k)/pmeanboot(j,k+kt))/DBLE(kt)	!Pas 3: calcula E_b(t)
+        PRINT *, EMpoint(j,k)
     ENDDO
   ENDDO
   DO i=1,(nt-kt)				!Suma per a cada temps i de b=1 asta N_b=nboot
@@ -59,9 +61,11 @@ PROGRAM PLOT_EMP
     ENDDO
   CLOSE(10)
 
-!Per calcular la matriu de cov i les chi2
-  OPEN (11, file="EMP_prot_boot_var.dat")
-    WRITE(11,*) nsc,nboot,nt
+!Les x random
+  OPEN (11, file="EMP_prot_boot_x.dat")
+  DO k=1,nsc
+    WRITE(11,*) x(k,:)			
+  ENDDO
   CLOSE(11)
 
   OPEN (12, file="EMP_prot_boot_param.dat")

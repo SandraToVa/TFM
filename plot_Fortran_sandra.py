@@ -37,11 +37,17 @@ for k in range(0,nt):
     for i in range(0,nsc):
         suma=suma+blck[i][k]
     pmean[k]=suma*nsc_
+
 #2. Creem les Cb(t)
-x=np.zeros((nsc,nboot))  #Matriu de num aleatoris entre 0 i 1
-for i in range(0,nsc):
-    for k in range(0,nt):
-        x[i][k]=np.random.uniform()
+##x=np.zeros((nsc,nboot))  #Matriu de num aleatoris entre 0 i 1
+##for i in range(0,nsc):
+##    for k in range(0,nt):
+##        x[i][k]=np.random.uniform()
+with open('EMP_prot_boot_x.dat', 'r') as f:
+    data=f.read()
+data = data.split('\n')[:-1]
+x=np.array([[float(i) for i in row.split()] for row in data])
+
 pmeanboot=np.zeros((nboot,nt))
 for k in range(0,nt):
     for j in range(0,nboot):
@@ -49,6 +55,7 @@ for k in range(0,nt):
         for i in range(0,nsc):
             boot=boot+blck[int(x[i][j]*nsc)][k]
         pmeanboot[j][k]=boot*nsc_   #Ara hem generat les Nb bootstrap samples Cb(t)
+
 #3. Calculem Eb(t)
 kt=1
 EMpoint=0.
@@ -56,7 +63,7 @@ EMpoint=np.zeros((nboot,(nt-kt)))
 for k in range(0,(nt-kt)):
     for j in range(0,nboot):
         EMpoint[j][k]=np.log(pmeanboot[j][k]/pmeanboot[j][k+kt])/kt
-
+        print(EMpoint[j][k])
 #Clculem \Bar{E}(t) i errors
 mean=np.zeros(nt-kt)
 for k in range(0,(nt-kt)):
@@ -74,7 +81,10 @@ for k in range(0,(nt-kt)):
 xboot=list(range(1, nt))
 yboot=mean
 eboot=sigm
-E_b=EMpoint
+E_b=np.zeros(((nt-kt),nboot))
+for k in range(0,(nt-kt)):
+    for j in range(0,nboot):
+        E_b[k][j]=EMpoint[j][k]
 print(xboot)
 print(yboot)    #########Dona massa alt! re mirar
 print(eboot)
