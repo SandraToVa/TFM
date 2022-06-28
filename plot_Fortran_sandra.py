@@ -91,14 +91,6 @@ print(E_b)
 ##yjack = [float(row.split()[1]) for row in data]
 ##ejack = [float(row.split()[2]) for row in data]
 
-#Per calulcar chi2 i cov matriu
-
-
-
-
-
-#Los primers index son 0
-
 t=[i for i in range(1,nt+1)]
 b=[i for i in range(1,nboot+1)]
 
