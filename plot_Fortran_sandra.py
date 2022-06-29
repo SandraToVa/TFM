@@ -39,14 +39,11 @@ for k in range(0,nt):
     pmean[k]=suma*nsc_
 
 #2. Creem les Cb(t)
-##x=np.zeros((nsc,nboot))  #Matriu de num aleatoris entre 0 i 1
-##for i in range(0,nsc):
-##    for k in range(0,nt):
-##        x[i][k]=np.random.uniform()
-with open('EMP_prot_boot_x.dat', 'r') as f:
-    data=f.read()
-data = data.split('\n')[:-1]
-x=np.array([[float(i) for i in row.split()] for row in data])
+x=np.zeros((nsc,nboot))  #Matriu de num aleatoris entre 0 i 1
+for i in range(0,nsc):
+    for j in range(0,nboot):
+        x[i][j]=np.random.uniform()
+
 
 pmeanboot=np.zeros((nboot,nt))
 for k in range(0,nt):
@@ -352,8 +349,8 @@ for i in range(3,12):       #Temps inicial del fit
         sigma_e[counter_i].append(sigma_estad_e)
 
         #L'error sistematic lo caluclo al final pero aqui lo poso per a poder GRAFICAR
-        sigma_sist_l=0.010406684875488015
-        sigma_sist_e=0.09697668677474058
+        sigma_sist_l=0.007512302398681614
+        sigma_sist_e=0.007488426834774797
         #L'eror total es
         sigma_t_l=math.sqrt(sigma_sist_l**2+sigma_estad_l**2)
         sigma_t_e=math.sqrt(sigma_sist_e**2+sigma_estad_e**2)
