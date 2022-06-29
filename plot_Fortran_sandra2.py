@@ -43,7 +43,6 @@ nsc=29
 nt=22
 nboot=30
 
-
 with open('EMP_prot_boot_param.dat', 'r') as f:
     data = f.read()
 
