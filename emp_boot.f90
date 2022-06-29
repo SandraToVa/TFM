@@ -64,7 +64,7 @@ PROGRAM PLOT_EMP
 !Les x random
   OPEN (11, file="EMP_prot_boot_x.dat")
   DO k=1,nsc
-    WRITE(11,*) x(k,:)			
+    WRITE(11,*) x(k,:)
   ENDDO
   CLOSE(11)
 
