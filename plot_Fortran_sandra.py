@@ -16,10 +16,11 @@ from matplotlib.backends.backend_pdf import PdfPages
 from scipy.optimize import curve_fit
 from scipy.optimize import minimize
 
+import h5py
 
-nsc=29  #N
+nsc=29  #N # Utilitza nsc=454 si fas servir les dades del fitxer h5
 nt=22
-nboot=30    #Nb
+nboot=nsc    #Nb
 nsc_=1./nsc
 nsc1_=1./(nsc-1)
 nboot_=1./nboot
@@ -31,6 +32,9 @@ with open('prot_SP.dat', 'r') as f:
 data = data.split('\n')
 blck=np.array([[float(i) for i in row.split()] for row in data])   #Columnes=k=t i files=i de 1 a N
 
+#fh5 = h5py.File('/Users/marcilla/Downloads/qblocks_matrix_irreps_cl3_32_48_b6p1_m0p2450_frontera.h5', 'r')
+#blck = 0.5*(np.real(np.array(fh5['B1_G1_f'][0:nsc,0,0,0,1,0:nt]))+np.real(np.array(fh5['B1_G1_b'][0:nsc,0,0,0,1,0:nt])))
+
 pmean=np.zeros(nt)
 for k in range(0,nt):
     suma=0
@@ -39,11 +43,7 @@ for k in range(0,nt):
     pmean[k]=suma*nsc_
 
 #2. Creem les Cb(t)
-x=np.zeros((nsc,nboot))  #Matriu de num aleatoris entre 0 i 1
-for i in range(0,nsc):
-    for j in range(0,nboot):
-        x[i][j]=np.random.uniform()
-
+x=np.random.uniform(size=(nsc,nboot))  #Matriu de num aleatoris entre 0 i 1
 
 pmeanboot=np.zeros((nboot,nt))
 for k in range(0,nt):
@@ -87,19 +87,8 @@ print(yboot)    #########Dona massa alt! re mirar
 print(eboot)
 print(E_b)
 
-# MI: crec que no cal utilitzar les dades de jack, ja que nomes fas servir les de bootstrap
-#S: quan tot funcioni be repetiré el procediment per ales dades de jack
-
-##with open('EMP_prot_jack.dat', 'r') as f:
-##    data = f.read()
-
-##data = data.split('\n')[:-1]
-##xjack = [float(row.split()[0])+0.1 for row in data]
-##yjack = [float(row.split()[1]) for row in data]
-##ejack = [float(row.split()[2]) for row in data]
-
-t=[i for i in range(1,nt+1)]
-b=[i for i in range(1,nboot+1)]
+#t=[i for i in range(1,nt+1)]
+#b=[i for i in range(1,nboot+1)]
 
 #Faig un loop en diferents temps
 
@@ -271,7 +260,7 @@ for i in range(3,12):       #Temps inicial del fit
         #lineal
         cmin_l.sort()   #ordeno la llista de petit a gran
         cmin_l=np.array(cmin_l)
-        cmin_l=[abs(elemento - c_l[0]) for elemento in cmin_l]    #llista de les c-\bar{c}
+        cmin_l=[elemento - c_l[0] for elemento in cmin_l]    #llista de les c-\bar{c}
         q_5=0
         q_1=0
 
@@ -293,7 +282,7 @@ for i in range(3,12):       #Temps inicial del fit
         amin_e=np.array(amin_e)
         bmin_e=np.array(bmin_e)
         #a i delta_a
-        amin_e=[abs(elemento - c_e[0]) for elemento in amin_e]
+        amin_e=[elemento - c_e[0] for elemento in amin_e]
         q_5=0
         q_1=0
         q_5=np.quantile(amin_e,5./6)
@@ -302,7 +291,7 @@ for i in range(3,12):       #Temps inicial del fit
         delta_a=(q_5-q_1)/2
         delta_e.append(delta_a)
         #b i delta_b
-        bmin_e=[abs(elemento - c_e[1]) for elemento in bmin_e]
+        bmin_e=[elemento - c_e[1] for elemento in bmin_e]
         q_5=0
         q_1=0
         q_5=np.quantile(bmin_e,5./6)
@@ -311,7 +300,7 @@ for i in range(3,12):       #Temps inicial del fit
         delta_b=(q_5-q_1)/2
         delta_e.append(delta_b)
         #c i delta_c
-        cmin_e=[abs(elemento - c_e[2]) for elemento in cmin_e]
+        cmin_e=[elemento - c_e[2] for elemento in cmin_e]
         q_5=0
         q_1=0
         q_5=np.quantile(cmin_e,5./6)
