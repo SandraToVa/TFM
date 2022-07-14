@@ -60,7 +60,7 @@ EMpoint=np.zeros((nboot,(nt-kt)))
 for k in range(0,(nt-kt)):
     for j in range(0,nboot):
         EMpoint[j][k]=np.log(pmeanboot[j][k]/pmeanboot[j][k+kt])/kt
-        print(EMpoint[j][k])
+
 #Clculem \Bar{E}(t) i errors
 mean=np.zeros(nt-kt)
 for k in range(0,(nt-kt)):
@@ -82,10 +82,7 @@ E_b=np.zeros(((nt-kt),nboot))
 for k in range(0,(nt-kt)):
     for j in range(0,nboot):
         E_b[k][j]=EMpoint[j][k]
-print(xboot)
-print(yboot)    #########Dona massa alt! re mirar
-print(eboot)
-print(E_b)
+
 
 #t=[i for i in range(1,nt+1)]
 #b=[i for i in range(1,nboot+1)]
@@ -362,11 +359,9 @@ for i in range(3,12):       #Temps inicial del fit
 
         plt.subplots_adjust(left=0.08, bottom=0.08, right=0.98, top=0.95, wspace=0.21, hspace=0.2)
 
-        #########################
-        #No cal fer un gràfic cada vegada pero m'ajuda a visualitzar l'ajust -> Cal canviar-ho quan tot vagi be
-        #PLOT LINEAL
+        #########################            #No cal fer un gràfic cada vegada pero m'ajuda a visualitzar l'ajust -> Cal canviar-ho quan tot vagi be
+            #PLOT LINEAL
         fig1 = fig.add_subplot(1,1,1)
-
         fig1.set_title("Effective mass plot")
         fig1.set_ylabel(r'$\mathrm{m} \,\mathrm{(l.u.)}$')
         fig1.set_xlabel(r'$t \,\mathrm{(l.u.)}$')
@@ -381,12 +376,12 @@ for i in range(3,12):       #Temps inicial del fit
         ##fig1.errorbar(xjack,yjack, yerr=ejack, c='#20639B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Jackknive")
         #Plot del ajust
         plt.plot(xplot, yplot_l, 'r-', label='fit: c=%5.3f' % tuple(c_l))
-        #Error de l'ajust
+        #Error de l'ajust (només l'estadistic)
         fig1.add_patch(
             patches.Rectangle(
-                (i, c_l[0]-sigma_t_l), #Esquina inferior izquierda
+                (i, c_l[0]-sigma_estad_l), #Esquina inferior izquierda
                 f-i,                        #Ancho
-                2*sigma_t_l,
+                2*sigma_estad_l,
                 edgecolor = 'white',
                 facecolor = '#ffcccc',
                 fill=True
@@ -421,7 +416,7 @@ for i in range(3,12):       #Temps inicial del fit
         ##fig1.errorbar(xjack,yjack, yerr=ejack, c='#20639B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Jackknive")
         #Plot del ajust
         plt.plot(xplot, yplot_e, 'r-', label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(c_e))
-        #Error de l'ajust
+        #Error de l'ajust (només l'estadistic)
         plt.fill_between(t_errors, f_sup, f_inf, color='#ffcccc') #MI: el representa la banda, en comptes de les dues linies
 
         plt.legend()
@@ -430,7 +425,6 @@ for i in range(3,12):       #Temps inicial del fit
             pdf.savefig(fig)
 
         plt.close('all')
-
 
         #Aguardo les dades del millor fit
         #millor_c_l, milllor_c_e, millor_f_sup, millor_f_inf, millor_sigma_estad_l, millor_sigma_estad_e
@@ -451,7 +445,7 @@ for i in range(3,12):       #Temps inicial del fit
             millor_f_inf=f_inf
 
         anterior_chi2_e=chi_e
-
+        
         counter_f += 1
     counter_i += 1
 
@@ -468,12 +462,11 @@ print('* error estadistic =',sigma_l)
 #Restem aquest numero en tots los elements de la llista central
 flat_central=itertools.chain(*central_l) #Fem que central sigue una sola llista
 flat_central=list(flat_central)
-sistematic=[abs(elemento - millor_c_l[0]) for elemento in flat_central]
+sistematic=[elemento - millor_c_l[0] for elemento in flat_central]
 #Error sistematic es lo maxim error de la llista
 sist_l=max(sistematic)
 print('* error sistemàtic =',sist_l)
 #L'eror total es
-print('* error total =',error_t_l)
 sigma_t_l=math.sqrt(sist_l**2+millor_sigma_estad_l**2)
 #MILLOR PLOT LINEAL
 #Per fer el plot dels ajustos
@@ -504,15 +497,27 @@ fig1.errorbar(xboot,yboot, yerr=eboot, c='#ED553B', ls='None', marker='o', marke
 ##fig1.errorbar(xjack,yjack, yerr=ejack, c='#20639B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Jackknive")
 #Plot del ajust
 plt.plot(xplot, yplot_l, 'r-', label='fit: c=%5.3f' % tuple(millor_c_l))
-#Error de l'ajust
+#Error de l'ajust (estad+sistematic)
 fig1.add_patch(
     patches.Rectangle(
         (millor_i_l, millor_c_l[0]-sigma_t_l), #Esquina inferior izquierda
         millor_f_l-millor_i_l,                        #Ancho
         2*sigma_t_l,
-        edgecolor = 'white',
+        linewidth=0,
+        facecolor = '#ffa6a6',
+        fill=True,
+        label='Total error'
+        ) )
+#Error només estadistic
+fig1.add_patch(
+    patches.Rectangle(
+        (millor_i_l, millor_c_l[0]-millor_sigma_estad_l), #Esquina inferior izquierda
+        millor_f_l-millor_i_l,                        #Ancho
+        2*millor_sigma_estad_l,
+        linewidth=0,
         facecolor = '#ffcccc',
-        fill=True
+        fill=True,
+        label='Statictical error'
         ) )
 plt.legend()
 #plt.show()
@@ -534,12 +539,20 @@ print('* error estadistic =',sigma_e)
 #Restem aquest numero en tots los elements de la llista central
 flat_central=itertools.chain(*central_e) #Fem que central sigue una sola llista
 flat_central=list(flat_central)
-sistematic=[abs(elemento - millor_c_e[2]) for elemento in flat_central]
+sistematic=[elemento - millor_c_e[2] for elemento in flat_central]
 #Error sistematic es lo maxim error de la llista
 sist_e=max(sistematic)
 print('* error sistemàtic =',sist_e)
-sigma_t_e=math.sqrt(sist_e**2+millor_sigma_estad_e**2)
-print('* error total =',error_t_e)
+sigma_t_e_sup=[]
+sigma_t_e_inf=[]
+for element in millor_f_sup:
+    sigma_sup=0
+    sigma_sup=sist_e+element
+    sigma_t_e_sup.append(sigma_sup)
+for element in millor_f_inf:
+    sigma_inf=0
+    sigma_inf=-sist_e+element
+    sigma_t_e_inf.append(sigma_inf)
 
 #Per fer el plot dels ajustos
 #MILLOR PLOT EXPONENCIAL
@@ -570,7 +583,11 @@ fig1.errorbar(xboot,yboot, yerr=eboot, c='#ED553B', ls='None', marker='o', marke
 #Plot del ajust
 plt.plot(xplot, yplot_e, 'r-', label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(millor_c_e))
 #Error de l'ajust
-plt.fill_between(t_errors, millor_f_sup, millor_f_inf, color='#ffcccc') #MI: el representa la banda, en comptes de les dues linies
+plt.fill_between(t_errors, sigma_t_e_sup, millor_f_sup, color='#ffa6a6', label='Total error') #Total
+plt.fill_between(t_errors, millor_f_inf, sigma_t_e_inf, color='#ffa6a6')
+plt.fill_between(t_errors, millor_f_sup, millor_f_inf, color='#ffcccc', label='Statictical error') #Numés l'error sistemàtic
+#plt.fill_between(t_errors, sigma_t_e_sup, sigma_t_e_inf, color='#ffa6a6', label='Total error', alpha=1) #MI: el representa la banda, en comptes de les dues linies
+
 
 plt.legend()
 #plt.show()
