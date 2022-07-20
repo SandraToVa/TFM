@@ -19,7 +19,7 @@ from scipy.optimize import minimize
 import h5py
 
 nsc=29  #N # Utilitza nsc=454 si fas servir les dades del fitxer h5
-nt=22
+nt=21
 nboot=nsc    #Nb
 nsc_=1./nsc
 nsc1_=1./(nsc-1)
@@ -27,13 +27,15 @@ nboot_=1./nboot
 nbot_=1./(nboot-1)
 #Creem les dades de Bootstrap - emp_boot.f90
 #1. Llegim les dades Ci(t)
-with open('prot_SP.dat', 'r') as f:
-    data=f.read()
-data = data.split('\n')
-blck=np.array([[float(i) for i in row.split()] for row in data])   #Columnes=k=t i files=i de 1 a N
+##DEL FITXER SP
+#with open('prot_SP.dat', 'r') as f:
+#    data=f.read()
+#data = data.split('\n')
+#blck=np.array([[float(i) for i in row.split()] for row in data])   #Columnes=k=t i files=i de 1 a N
 
-#fh5 = h5py.File('/Users/marcilla/Downloads/qblocks_matrix_irreps_cl3_32_48_b6p1_m0p2450_frontera.h5', 'r')
-#blck = 0.5*(np.real(np.array(fh5['B1_G1_f'][0:nsc,0,0,0,1,0:nt]))+np.real(np.array(fh5['B1_G1_b'][0:nsc,0,0,0,1,0:nt])))
+#DELS FITXER .H5
+fh5 = h5py.File('\\Users\\Sandra\\Documents\\GitHub\\TFM\\qblocks_matrix_irreps_cl3_32_48_b6p1_m0p2450_frontera-002.h5', 'r')
+blck = 0.5*(np.real(np.array(fh5['B1_G1_f'][0:nsc,0,0,0,1,0:nt])+np.real(np.array(fh5['B1_G1_b'][0:nsc,0,0,0,1,0:nt]))))
 
 pmean=np.zeros(nt)
 for k in range(0,nt):
@@ -445,7 +447,7 @@ for i in range(3,12):       #Temps inicial del fit
             millor_f_inf=f_inf
 
         anterior_chi2_e=chi_e
-        
+
         counter_f += 1
     counter_i += 1
 
