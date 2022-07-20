@@ -16,43 +16,79 @@ from matplotlib.backends.backend_pdf import PdfPages
 from scipy.optimize import curve_fit
 from scipy.optimize import minimize
 
+import h5py
 
-
-with open('EMP_prot_boot.dat', 'r') as f:
-    data = f.read()
-
-data = data.split('\n')[:-1]
-xboot = [float(row.split()[0]) for row in data]
-yboot = [float(row.split()[1]) for row in data]
-eboot = [float(row.split()[2]) for row in data]
-
-# MI: crec que no cal utilitzar les dades de jack, ja que nomes fas servir les de bootstrap
-#S: quan tot funcioni be repetiré el procediment per ales dades de jack
-
-##with open('EMP_prot_jack.dat', 'r') as f:
-##    data = f.read()
-
-##data = data.split('\n')[:-1]
-##xjack = [float(row.split()[0])+0.1 for row in data]
-##yjack = [float(row.split()[1]) for row in data]
-##ejack = [float(row.split()[2]) for row in data]
-
-#Per calulcar chi2 i cov matriu
-
-nsc=29
+nsc=29  #N # Utilitza nsc=454 si fas servir les dades del fitxer h5
 nt=22
-nboot=30
+nboot=nsc    #Nb
+nsc_=1./nsc
+nsc1_=1./(nsc-1)
+nboot_=1./nboot
+nbot_=1./(nboot-1)
+#Creem les dades de Bootstrap - emp_boot.f90
+#1. Llegim les dades Ci(t)
+##DEL FITXER SP
+with open('prot_SP.dat', 'r') as f:
+    data=f.read()
+data = data.split('\n')
+blck=np.array([[float(i) for i in row.split()] for row in data])   #Columnes=k=t i files=i de 1 a N
 
-with open('EMP_prot_boot_param.dat', 'r') as f:
-    data = f.read()
+#DELS FITXER .H5
+#fh5 = h5py.File('C:\Users\Sandra\Documents\GitHub\TFM\qblocks_matrix_irreps_cl3_32_48_b6p1_m0p2450_frontera-002.h5', 'r')
+#blck = 0.5*(np.real(np.array(fh5['B1_G1_f'][0:nsc,0,0,0,1,0:nt]))+np.real(np.array(fh5['B1_G1_b'][0:nsc,0,0,0,1,0:nt])))
+print(blck)
 
-data = data.split('\n')[:-1]
-#Files lo t comensant en t=1 i acabant en 21. Columnes b. [t=1[b],t=2[b],...]
-E_b=np.array([[float(i) for i in row.split()] for row in data])
-#Los primers index son 0
+pmean=np.zeros(nt)
+for k in range(0,nt):
+    suma=0
+    for i in range(0,nsc):
+        suma=suma+blck[i][k]
+    pmean[k]=suma*nsc_
 
-t=[i for i in range(1,nt+1)]
-b=[i for i in range(1,nboot+1)]
+#2. Creem les Cb(t)
+x=np.random.uniform(size=(nsc,nboot))  #Matriu de num aleatoris entre 0 i 1
+
+pmeanboot=np.zeros((nboot,nt))
+for k in range(0,nt):
+    for j in range(0,nboot):
+        boot=0.
+        for i in range(0,nsc):
+            boot=boot+blck[int(x[i][j]*nsc)][k]
+        pmeanboot[j][k]=boot*nsc_   #Ara hem generat les Nb bootstrap samples Cb(t)
+
+#3. Calculem Eb(t)
+kt=1
+EMpoint=0.
+EMpoint=np.zeros((nboot,(nt-kt)))
+for k in range(0,(nt-kt)):
+    for j in range(0,nboot):
+        EMpoint[j][k]=np.log(pmeanboot[j][k]/pmeanboot[j][k+kt])/kt
+
+#Clculem \Bar{E}(t) i errors
+mean=np.zeros(nt-kt)
+for k in range(0,(nt-kt)):
+    suma=0
+    for j in range(0,nboot):
+        suma=suma+EMpoint[j][k]
+    mean[k]=suma*nboot_
+sigm=np.zeros(nt-kt)
+for k in range(0,(nt-kt)):
+    sigma=0
+    for j in range(0,nboot):
+        sigma=sigma+(EMpoint[j][k]-mean[k])*(EMpoint[j][k]-mean[k])
+    sigm[k]=np.sqrt(sigma*nboot_*nsc*nsc1_)
+#Dades
+xboot=list(range(1, nt))
+yboot=mean
+eboot=sigm
+E_b=np.zeros(((nt-kt),nboot))
+for k in range(0,(nt-kt)):
+    for j in range(0,nboot):
+        E_b[k][j]=EMpoint[j][k]
+
+
+#t=[i for i in range(1,nt+1)]
+#b=[i for i in range(1,nboot+1)]
 
 #Faig un loop en diferents temps
 
@@ -91,6 +127,17 @@ def func_l(t,d):
 def func_e(t, a,b,c):
     return a * np.exp(-b * t) + c
 
+#Matriu de covariància per a tots els Temps=cov_t
+cov_t=np.zeros((nt-1,nt-1))
+for l in range(0,nt-1): #l files de cov, t
+    for c in range(0,nt-1): #c columnes de cov, t'
+        suma=0
+        for p in range(0,nboot): #sumatori de les b per acada element de la matriu t,t'
+            suma=suma+(E_b[l][p]-yboot[l])*(E_b[c][p]-yboot[c])
+        suma=(nsc/(nsc-1))*(1/nboot)*suma
+        cov_t[l][c]=suma
+cov_t=np.array(cov_t)
+
 for i in range(3,12):       #Temps inicial del fit
     #Lo valor minim del interval es 5
     counter_f=0
@@ -98,22 +145,12 @@ for i in range(3,12):       #Temps inicial del fit
 
         #Mida de l'interval
         j=f-i+1
-        #Definim la matriu de covariancia que usarem a cada interval
-        cov=np.zeros((j,j))
-
-        for l in range(j): #l files de cov, t
-            for c in range(j): #c columnes de cov, t'
-                suma=0
-                for p in range(0,nboot): #sumatori de les b per acada element de la matriu t,t'
-                    suma=suma+(E_b[l][p]-yboot[l])*(E_b[c][p]-yboot[c])
-                suma=(nsc/(nsc+1))*(1/nboot)*suma
-                cov[l][c]=suma
-        cov=np.array(cov)
+        #Matriu de covariància per a cada interval de Temps=cov
+        cov=[]
+        cov=cov_t[i-1:f,i-1:f]
         cov_=np.linalg.inv(cov)     #inversa de la matriu covariant
-
         #Trobem lo millor fit minimitzant la chi2
         #Com la matriu cov ja esta feta per a aquest interval de temps corresponent, creo dos contadors: n,m
-
         def fun_chi_l(c):
             chi_l=0
             n=0
@@ -223,7 +260,7 @@ for i in range(3,12):       #Temps inicial del fit
         #lineal
         cmin_l.sort()   #ordeno la llista de petit a gran
         cmin_l=np.array(cmin_l)
-        cmin_l=[abs(elemento - c_l[0]) for elemento in cmin_l]    #llista de les c-\bar{c}
+        cmin_l=[elemento - c_l[0] for elemento in cmin_l]    #llista de les c-\bar{c}
         q_5=0
         q_1=0
 
@@ -245,7 +282,7 @@ for i in range(3,12):       #Temps inicial del fit
         amin_e=np.array(amin_e)
         bmin_e=np.array(bmin_e)
         #a i delta_a
-        amin_e=[abs(elemento - c_e[0]) for elemento in amin_e]
+        amin_e=[elemento - c_e[0] for elemento in amin_e]
         q_5=0
         q_1=0
         q_5=np.quantile(amin_e,5./6)
@@ -254,7 +291,7 @@ for i in range(3,12):       #Temps inicial del fit
         delta_a=(q_5-q_1)/2
         delta_e.append(delta_a)
         #b i delta_b
-        bmin_e=[abs(elemento - c_e[1]) for elemento in bmin_e]
+        bmin_e=[elemento - c_e[1] for elemento in bmin_e]
         q_5=0
         q_1=0
         q_5=np.quantile(bmin_e,5./6)
@@ -263,7 +300,7 @@ for i in range(3,12):       #Temps inicial del fit
         delta_b=(q_5-q_1)/2
         delta_e.append(delta_b)
         #c i delta_c
-        cmin_e=[abs(elemento - c_e[2]) for elemento in cmin_e]
+        cmin_e=[elemento - c_e[2] for elemento in cmin_e]
         q_5=0
         q_1=0
         q_5=np.quantile(cmin_e,5./6)
@@ -301,8 +338,8 @@ for i in range(3,12):       #Temps inicial del fit
         sigma_e[counter_i].append(sigma_estad_e)
 
         #L'error sistematic lo caluclo al final pero aqui lo poso per a poder GRAFICAR
-        sigma_sist_l=0.009890441894531143
-        sigma_sist_e=0.010645880779658778
+        sigma_sist_l=0.007512302398681614
+        sigma_sist_e=0.007488426834774797
         #L'eror total es
         sigma_t_l=math.sqrt(sigma_sist_l**2+sigma_estad_l**2)
         sigma_t_e=math.sqrt(sigma_sist_e**2+sigma_estad_e**2)
@@ -325,11 +362,9 @@ for i in range(3,12):       #Temps inicial del fit
 
         plt.subplots_adjust(left=0.08, bottom=0.08, right=0.98, top=0.95, wspace=0.21, hspace=0.2)
 
-        #########################
-        #No cal fer un gràfic cada vegada pero m'ajuda a visualitzar l'ajust -> Cal canviar-ho quan tot vagi be
-        #PLOT LINEAL
+        #########################            #No cal fer un gràfic cada vegada pero m'ajuda a visualitzar l'ajust -> Cal canviar-ho quan tot vagi be
+            #PLOT LINEAL
         fig1 = fig.add_subplot(1,1,1)
-
         fig1.set_title("Effective mass plot")
         fig1.set_ylabel(r'$\mathrm{m} \,\mathrm{(l.u.)}$')
         fig1.set_xlabel(r'$t \,\mathrm{(l.u.)}$')
@@ -344,12 +379,12 @@ for i in range(3,12):       #Temps inicial del fit
         ##fig1.errorbar(xjack,yjack, yerr=ejack, c='#20639B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Jackknive")
         #Plot del ajust
         plt.plot(xplot, yplot_l, 'r-', label='fit: c=%5.3f' % tuple(c_l))
-        #Error de l'ajust
+        #Error de l'ajust (només l'estadistic)
         fig1.add_patch(
             patches.Rectangle(
-                (i, c_l[0]-sigma_t_l), #Esquina inferior izquierda
+                (i, c_l[0]-sigma_estad_l), #Esquina inferior izquierda
                 f-i,                        #Ancho
-                2*sigma_t_l,
+                2*sigma_estad_l,
                 edgecolor = 'white',
                 facecolor = '#ffcccc',
                 fill=True
@@ -384,7 +419,7 @@ for i in range(3,12):       #Temps inicial del fit
         ##fig1.errorbar(xjack,yjack, yerr=ejack, c='#20639B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Jackknive")
         #Plot del ajust
         plt.plot(xplot, yplot_e, 'r-', label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(c_e))
-        #Error de l'ajust
+        #Error de l'ajust (només l'estadistic)
         plt.fill_between(t_errors, f_sup, f_inf, color='#ffcccc') #MI: el representa la banda, en comptes de les dues linies
 
         plt.legend()
@@ -393,7 +428,6 @@ for i in range(3,12):       #Temps inicial del fit
             pdf.savefig(fig)
 
         plt.close('all')
-
 
         #Aguardo les dades del millor fit
         #millor_c_l, milllor_c_e, millor_f_sup, millor_f_inf, millor_sigma_estad_l, millor_sigma_estad_e
@@ -421,7 +455,7 @@ for i in range(3,12):       #Temps inicial del fit
 print('LINEAL###############################')
 print('* chi2 =',chi2_l)
 print('* central =',central_l)
-print('* fit =',fit_l)  #Comprovo que es lo mateix q el central
+#print('* fit =',fit_l)  #Comprovo que es lo mateix q el central
 print('* error estadistic =',sigma_l)
 
 #Millor resultat
@@ -431,12 +465,11 @@ print('* error estadistic =',sigma_l)
 #Restem aquest numero en tots los elements de la llista central
 flat_central=itertools.chain(*central_l) #Fem que central sigue una sola llista
 flat_central=list(flat_central)
-sistematic=[abs(elemento - millor_c_l[0]) for elemento in flat_central]
+sistematic=[elemento - millor_c_l[0] for elemento in flat_central]
 #Error sistematic es lo maxim error de la llista
 sist_l=max(sistematic)
 print('* error sistemàtic =',sist_l)
 #L'eror total es
-print('* error total =',error_t_l)
 sigma_t_l=math.sqrt(sist_l**2+millor_sigma_estad_l**2)
 #MILLOR PLOT LINEAL
 #Per fer el plot dels ajustos
@@ -467,15 +500,27 @@ fig1.errorbar(xboot,yboot, yerr=eboot, c='#ED553B', ls='None', marker='o', marke
 ##fig1.errorbar(xjack,yjack, yerr=ejack, c='#20639B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Jackknive")
 #Plot del ajust
 plt.plot(xplot, yplot_l, 'r-', label='fit: c=%5.3f' % tuple(millor_c_l))
-#Error de l'ajust
+#Error de l'ajust (estad+sistematic)
 fig1.add_patch(
     patches.Rectangle(
         (millor_i_l, millor_c_l[0]-sigma_t_l), #Esquina inferior izquierda
         millor_f_l-millor_i_l,                        #Ancho
         2*sigma_t_l,
-        edgecolor = 'white',
+        linewidth=0,
+        facecolor = '#ffa6a6',
+        fill=True,
+        label='Total error'
+        ) )
+#Error només estadistic
+fig1.add_patch(
+    patches.Rectangle(
+        (millor_i_l, millor_c_l[0]-millor_sigma_estad_l), #Esquina inferior izquierda
+        millor_f_l-millor_i_l,                        #Ancho
+        2*millor_sigma_estad_l,
+        linewidth=0,
         facecolor = '#ffcccc',
-        fill=True
+        fill=True,
+        label='Statictical error'
         ) )
 plt.legend()
 #plt.show()
@@ -487,7 +532,7 @@ plt.close('all')
 print('EXPONENCIAL###############################')
 print('* chi2 =',chi2_e)
 print('* central =',central_e)
-print('* fit =',fit_e)
+#print('* fit =',fit_e)
 print('* error estadistic =',sigma_e)
 
 #Millor resultat
@@ -497,12 +542,20 @@ print('* error estadistic =',sigma_e)
 #Restem aquest numero en tots los elements de la llista central
 flat_central=itertools.chain(*central_e) #Fem que central sigue una sola llista
 flat_central=list(flat_central)
-sistematic=[abs(elemento - millor_c_e[2]) for elemento in flat_central]
+sistematic=[elemento - millor_c_e[2] for elemento in flat_central]
 #Error sistematic es lo maxim error de la llista
 sist_e=max(sistematic)
 print('* error sistemàtic =',sist_e)
-sigma_t_e=math.sqrt(sist_e**2+millor_sigma_estad_e**2)
-print('* error total =',error_t_e)
+sigma_t_e_sup=[]
+sigma_t_e_inf=[]
+for element in millor_f_sup:
+    sigma_sup=0
+    sigma_sup=sist_e+element
+    sigma_t_e_sup.append(sigma_sup)
+for element in millor_f_inf:
+    sigma_inf=0
+    sigma_inf=-sist_e+element
+    sigma_t_e_inf.append(sigma_inf)
 
 #Per fer el plot dels ajustos
 #MILLOR PLOT EXPONENCIAL
@@ -533,7 +586,11 @@ fig1.errorbar(xboot,yboot, yerr=eboot, c='#ED553B', ls='None', marker='o', marke
 #Plot del ajust
 plt.plot(xplot, yplot_e, 'r-', label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(millor_c_e))
 #Error de l'ajust
-plt.fill_between(t_errors, millor_f_sup, millor_f_inf, color='#ffcccc') #MI: el representa la banda, en comptes de les dues linies
+plt.fill_between(t_errors, sigma_t_e_sup, millor_f_sup, color='#ffa6a6', label='Total error') #Total
+plt.fill_between(t_errors, millor_f_inf, sigma_t_e_inf, color='#ffa6a6')
+plt.fill_between(t_errors, millor_f_sup, millor_f_inf, color='#ffcccc', label='Statictical error') #Numés l'error sistemàtic
+#plt.fill_between(t_errors, sigma_t_e_sup, sigma_t_e_inf, color='#ffa6a6', label='Total error', alpha=1) #MI: el representa la banda, en comptes de les dues linies
+
 
 plt.legend()
 #plt.show()
