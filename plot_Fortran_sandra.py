@@ -18,7 +18,7 @@ from scipy.optimize import minimize
 
 import h5py
 
-nsc=29  #N # Utilitza nsc=454 si fas servir les dades del fitxer h5
+nsc=454  #N # Utilitza nsc=454 si fas servir les dades del fitxer h5
 nt=21
 nboot=nsc    #Nb
 nsc_=1./nsc
@@ -100,20 +100,17 @@ for k in range(0,(nt-kt)):
 
 counter_i=0
 #chi square
-chi2_l=[[],[],[],[],[],[],[],[],[]] #lineal
-chi2_e=[[],[],[],[],[],[],[],[],[]]
+chi2_l=[[],[],[]] #lineal
+chi2_e=[[],[],[]]
 #valor central
-central_l=[[],[],[],[],[],[],[],[],[]]
-central_e=[[],[],[],[],[],[],[],[],[]]
+central_l=[[],[],[]]
+central_e=[[],[],[]]
 #error estadistic
-sigma_l=[[],[],[],[],[],[],[],[],[]]
-sigma_e=[[],[],[],[],[],[],[],[],[]]
-#error total = estad + sistem suma quadràtica
-error_t_l=[[],[],[],[],[],[],[],[],[]]
-error_t_e=[[],[],[],[],[],[],[],[],[]]
+sigma_l=[[],[],[]]
+sigma_e=[[],[],[]]
 #Llita en los fits de cada ajust
-fit_l=[[],[],[],[],[],[],[],[],[]]
-fit_e=[[],[],[],[],[],[],[],[],[]]
+fit_l=[[],[],[]]
+fit_e=[[],[],[]]
 
 anterior_chi2_l=100.   #per saber quin es el millor ajust
 anterior_chi2_e=100.
@@ -137,10 +134,10 @@ for l in range(0,nt-1): #l files de cov, t
         cov_t[l][c]=suma
 cov_t=np.array(cov_t)
 
-for i in range(3,12):       #Temps inicial del fit
+for i in range(7,10):       #Temps inicial del fit
     #Lo valor minim del interval es 5
     counter_f=0
-    for f in range(i+5,17):              #Temps finals possibles
+    for f in range(i+5,15):              #Temps finals possibles
 
         #Mida de l'interval
         j=f-i+1
@@ -336,16 +333,6 @@ for i in range(3,12):       #Temps inicial del fit
         sigma_l[counter_i].append(sigma_estad_l)
         sigma_e[counter_i].append(sigma_estad_e)
 
-        #L'error sistematic lo caluclo al final pero aqui lo poso per a poder GRAFICAR
-        sigma_sist_l=0.007512302398681614
-        sigma_sist_e=0.007488426834774797
-        #L'eror total es
-        sigma_t_l=math.sqrt(sigma_sist_l**2+sigma_estad_l**2)
-        sigma_t_e=math.sqrt(sigma_sist_e**2+sigma_estad_e**2)
-
-        error_t_l[counter_i].append(sigma_t_l)
-        error_t_e[counter_i].append(sigma_t_e)
-
         #Per fer el plot dels ajustos
         xplot=np.linspace(i,f,num=(f-i)*100)
         yplot_l=[]
@@ -448,8 +435,10 @@ for i in range(3,12):       #Temps inicial del fit
 
         anterior_chi2_e=chi_e
 
+        print(counter_i,counter_f)
         counter_f += 1
     counter_i += 1
+
 
 print('LINEAL###############################')
 print('* chi2 =',chi2_l)
@@ -545,16 +534,7 @@ sistematic=[elemento - millor_c_e[2] for elemento in flat_central]
 #Error sistematic es lo maxim error de la llista
 sist_e=max(sistematic)
 print('* error sistemàtic =',sist_e)
-sigma_t_e_sup=[]
-sigma_t_e_inf=[]
-for element in millor_f_sup:
-    sigma_sup=0
-    sigma_sup=sist_e+element
-    sigma_t_e_sup.append(sigma_sup)
-for element in millor_f_inf:
-    sigma_inf=0
-    sigma_inf=-sist_e+element
-    sigma_t_e_inf.append(sigma_inf)
+sigma_t_e=math.sqrt(sist_e**2+millor_sigma_estad_e**2)
 
 #Per fer el plot dels ajustos
 #MILLOR PLOT EXPONENCIAL
@@ -585,9 +565,27 @@ fig1.errorbar(xboot,yboot, yerr=eboot, c='#ED553B', ls='None', marker='o', marke
 #Plot del ajust
 plt.plot(xplot, yplot_e, 'r-', label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(millor_c_e))
 #Error de l'ajust
-plt.fill_between(t_errors, sigma_t_e_sup, millor_f_sup, color='#ffa6a6', label='Total error') #Total
-plt.fill_between(t_errors, millor_f_inf, sigma_t_e_inf, color='#ffa6a6')
-plt.fill_between(t_errors, millor_f_sup, millor_f_inf, color='#ffcccc', label='Statictical error') #Numés l'error sistemàtic
+fig1.add_patch(
+    patches.Rectangle(
+        (millor_i_e, millor_c_e[2]-sigma_t_e), #Esquina inferior izquierda
+        millor_f_e-millor_i_e,                        #Ancho
+        2*sigma_t_e,
+        linewidth=0,
+        facecolor = '#ffa6a6',
+        fill=True,
+        label='Total error'
+        ) )
+#Error només estadistic
+fig1.add_patch(
+    patches.Rectangle(
+        (millor_i_e, millor_c_e[2]-millor_sigma_estad_e), #Esquina inferior izquierda
+        millor_f_e-millor_i_e,                        #Ancho
+        2*millor_sigma_estad_e,
+        linewidth=0,
+        facecolor = '#ffcccc',
+        fill=True,
+        label='Statictical error'
+        ) )
 #plt.fill_between(t_errors, sigma_t_e_sup, sigma_t_e_inf, color='#ffa6a6', label='Total error', alpha=1) #MI: el representa la banda, en comptes de les dues linies
 
 
