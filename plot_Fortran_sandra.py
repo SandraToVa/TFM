@@ -27,13 +27,13 @@ nboot_=1./nboot
 nbot_=1./(nboot-1)
 #Creem les dades de Bootstrap - emp_boot.f90
 #1. Llegim les dades Ci(t)
-##DEL FITXER SP
+##DEL FITXER SP #nsc=29
 #with open('prot_SP.dat', 'r') as f:
 #    data=f.read()
 #data = data.split('\n')
 #blck=np.array([[float(i) for i in row.split()] for row in data])   #Columnes=k=t i files=i de 1 a N
 
-#DELS FITXER .H5
+#DELS FITXER .H5 #nsc=29 i 454
 fh5 = h5py.File('\\Users\\Sandra\\Documents\\GitHub\\TFM\\qblocks_matrix_irreps_cl3_32_48_b6p1_m0p2450_frontera-002.h5', 'r')
 blck = 0.5*(np.real(np.array(fh5['B1_G1_f'][0:nsc,0,0,0,1,0:nt])+np.real(np.array(fh5['B1_G1_b'][0:nsc,0,0,0,1,0:nt]))))
 
@@ -112,8 +112,8 @@ sigma_e=[[],[],[]]
 fit_l=[[],[],[]]
 fit_e=[[],[],[]]
 
-anterior_chi2_l=100.   #per saber quin es el millor ajust
-anterior_chi2_e=100.
+millor_chi2_l=100.   #per saber quin es el millor ajust
+millor_chi2_e=100.
 
 #Ajust lineal
 def func_l(t,d):
@@ -134,10 +134,10 @@ for l in range(0,nt-1): #l files de cov, t
         cov_t[l][c]=suma
 cov_t=np.array(cov_t)
 
-for i in range(7,10):       #Temps inicial del fit
+for i in range(7,10):       #Temps inicial del fit (7,10) o (3,12)
     #Lo valor minim del interval es 5
     counter_f=0
-    for f in range(i+5,15):              #Temps finals possibles
+    for f in range(i+5,15):              #Temps finals possibles (15) o (17)
 
         #Mida de l'interval
         j=f-i+1
@@ -417,27 +417,26 @@ for i in range(7,10):       #Temps inicial del fit
 
         #Aguardo les dades del millor fit
         #millor_c_l, milllor_c_e, millor_f_sup, millor_f_inf, millor_sigma_estad_l, millor_sigma_estad_e
-        if anterior_chi2_l>chi_l:
+        if millor_chi2_l>chi_l:
             millor_i_l=i
             millor_f_l=f
             millor_c_l=c_l
             millor_sigma_estad_l=sigma_estad_l
+            millor_chi2_l=chi_l
 
-        anterior_chi2_l=chi_l
-
-        if anterior_chi2_e>chi_e:
+        if millor_chi2_e>chi_e:
             millor_i_e=i
             millor_f_e=f
             millor_c_e=c_e
             millor_sigma_estad_e=sigma_estad_e
             millor_f_sup=f_sup
             millor_f_inf=f_inf
-
-        anterior_chi2_e=chi_e
+            millor_chi2_e=chi_e
 
         print(counter_i,counter_f)
         counter_f += 1
     counter_i += 1
+
 
 
 print('LINEAL###############################')
@@ -465,6 +464,7 @@ xplot=np.linspace(millor_i_l,millor_f_l,num=(millor_f_l-millor_i_l)*100)
 yplot_l=[]
 for num in range(0,(millor_f_l-millor_i_l)*100):
     yplot_l.append(func_l(xplot, millor_c_l[0]))
+
 
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif', size='12')
