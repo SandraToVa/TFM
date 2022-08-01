@@ -24,82 +24,85 @@ nboot_=1./nboot
 nbot_=1./(nboot-1)
 #Creo un bucle per a plotejer totes les dades juntes
 #Numero de operadors n_op
-n_op=10  #10
+#n_op=10  #10
+n_oplist = [3,4,5,6]
+n_op = len(n_oplist)
+n_smear = 1
+ndim = n_op*n_smear
 yboot=[]
 eboot=[]
 #op=3,11
 #DELS FITXER .H5
-fh5 = h5py.File('\\Users\\Sandra\\Documents\\GitHub\\TFM\\qblocks_matrix_irreps_cl3_32_48_b6p1_m0p2450_frontera-002.h5', 'r')
-blck = 0.5*(np.real(np.array(fh5['B2_I1_A1_f'][0:nsc,3:n_op,0,3:n_op,1,0:nt])+np.real(np.array(fh5['B2_I1_A1_b'][0:nsc,3:n_op,0,3:n_op,1,0:nt]))))
+#fh5 = h5py.File('\\Users\\Sandra\\Documents\\GitHub\\TFM\\qblocks_matrix_irreps_cl3_32_48_b6p1_m0p2450_frontera-002.h5', 'r')
+fh5 = h5py.File('/Volumes/GoogleDrive-100962958533814099960/.shortcut-targets-by-id/1mV9ITzWE4JpeOWAX6GdzvZ5l3if1bz8j/Sandra Tomás/Codis/data/qblocks_matrix_irreps_cl3_32_48_b6p1_m0p2450_frontera.h5', 'r')
+blck = np.zeros((nsc,ndim,ndim,nt))
+for i,opsrc in enumerate(n_oplist):
+    for j,opsnk in enumerate(n_oplist):
+        for ii in range(n_smear):
+            for jj in range(n_smear):
+                iii = i+ii*n_op
+                jjj = j+jj*n_op
+                blck[:,iii,jjj,:] = 0.5*(np.real(np.array(fh5['B2_I1_A1_f'][0:nsc,opsrc,ii,opsnk,jj,0:nt])+np.real(np.array(fh5['B2_I1_A1_b'][0:nsc,opsrc,ii,opsnk,jj,0:nt]))))
 
+blck2=np.zeros((nsc,ndim,ndim,nt))
+for op_src in range(ndim):
+    for op_snk in range(ndim):
+        #Var1 pre-processing antes de diagonalitzar C_ab(t)
+        for k in range(nt):
+            blck2[:,op_src,op_snk,k]=0.5*(blck[:,op_src,op_snk,k]+blck[:,op_snk,op_src,k])/np.sqrt(blck[:,op_src,op_src,0]*blck[:,op_snk,op_snk,0])
+
+#Var1.2 Les matrius C_b(t)=pmeanboot correlator samples bootstrap samples NxN=[opsrc][opsnk]
 #Millor passar array de op especifics
-t_0=4-1 #t0=4
-for op_src in range(t_0,n_op):
-    for op_snk in range(t_0,n_op):
-        opsrc=op_src-t_0    #Pq comencen los op_ desde t_0=3 i no poden ser usats com a index q comença de 0
-        opsnk=op_snk-t_0
-        #2. Creem les Cb(t)
-        x=np.random.uniform(size=(nsc,nboot))  #Matriu de num aleatoris entre 0 i 1
-
-        pmeanboot=np.zeros((nboot,n_op-t_0,n_op-t_0,nt))
-        for k in range(0,nt):
-            for j in range(0,nboot):
-                boot=0.
-                for i in range(0,nsc):
-                    boot=boot+blck[int(x[i][j]*nsc)][opsrc][opsnk][k]
-                pmeanboot[j][opsrc][opsnk][k]=boot*nsc_   #Ara hem generat les Nb bootstrap samples Cb(t)
-
-for op_src in range(t_0,n_op):
-    for op_snk in range(t_0,n_op):
-        opsrc=op_src-t_0    #Pq comencen los op_ desde t_0=3 i no poden ser usats com a index q comença de 0
-        opsnk=op_snk-t_0
-        #Var1. Les matrius C_b(t)=pmeanboot correlator samples bootstrap samples NxN=[opsrc][opsnk]
-        #Var1.2 pre-processing antes de diagonalitzar C_ab(t)
-        pmeanboot2=np.zeros((nboot,n_op-t_0,n_op-t_0,nt))
-        for k in range(0,nt):
-            pmeanboot2[j][opsrc][opsnk][k]=0.5*((pmeanboot[j][opsrc][opsnk][k]+pmeanboot[j][opsnk][opsrc][k])/(pmeanboot[j][opsrc][opsnk][0]+pmeanboot[j][opsnk][opsrc][0]))
-
+pmeanboot=np.zeros((nboot,ndim,ndim,nt))
+x=np.random.uniform(size=(nsc,nboot))  #Matriu de num aleatoris entre 0 i 1
+for j in range(nboot):
+    boot=np.zeros((ndim,ndim,nt))
+    for i in range(nsc):
+        boot=boot+blck2[int(x[i][j]*nsc),:,:,:]
+    pmeanboot[j,:,:,:]=boot*nsc_   #Ara hem generat les Nb bootstrap samples Cb(t)
+    
 #pmeanboot=C(t)
 #pmeanboot2=C(t) en pre-processing
 #C=\tilde{C}(t)
 #C_diag=matriu final C_alpha,alpha que utilitzem per trobar la energia
 #Var3.a find the cholesky decomposition of pmeanboot2(t0)
-L=np.linalg.cholesky(pmeanboot2[:][:][:][3])
-L_=np.linalg.inv(L) #Matriu inversa
-Lt=np.matrix.H(L)   #Matriu adjunta
-L_t=np.linalg.inv(Lt)   #invers de l'adjunt
-
+t_0=4-1 #t0=4
 #Tot per t_ref=2*t_0=8
 t_ref=2*(t_0+1)-1   #El -1 es per la llista q comensa en 0
-#Var3.b Calulem \tilde{C}(t)=C(t)
-matrix=np.matmul(L_,pmeanboot2[:][:][:][t_ref])
-C=np.matmul(matrix,L_t)
+C_diag=np.zeros((nboot,ndim,ndim,nt))
+for n in range(nboot):
+    L=np.linalg.cholesky(pmeanboot[n,:,:,t_0])
+    L_=np.linalg.inv(L) #Matriu inversa
+    Lt=L.T   #Matriu adjunta
+    L_t=np.linalg.inv(Lt)   #invers de l'adjunt
 
-#Var3.c diagonalitzar C i trovar vectors propis \tilde{u}=v i valors propis w (q no utilitzo) per a t_ref
-w, v = np.linalg.eig(C)
-#Var3.d original eigenvectors u per a t_ref
-u=np.matmul(L_t,v)
-#La adjunta de los eigenvectors
-ut=np.matrix.H(u)
+    #Var3.b Calulem \tilde{C}(t)=C(t)
+    matrix=np.matmul(L_,pmeanboot[n,:,:,t_ref])
+    C=np.matmul(matrix,L_t)
 
-#Var3.e trobar la C_alpha,alpha(t)
-C_diag=[]
-for k in range(0,nt):
-    matrix=np.matmul(ut,pmeanboot2[:][:][:][k])
-    Cdiag=np.matmul(matrix,u)
-    C_diag.append(Cdiag)
+    #Var3.c diagonalitzar C i trovar vectors propis \tilde{u}=v i valors propis w (q no utilitzo) per a t_ref
+    w, v = np.linalg.eig(C)
+    #Var3.d original eigenvectors u per a t_ref
+    u=np.matmul(L_t,v)
+    #La adjunta de los eigenvectors
+    ut=u.T
 
-print(C_diag)
+    #Var3.e trobar la C_alpha,alpha(t)
+    for k in range(0,nt):
+        matrix=np.matmul(ut,pmeanboot[n,:,:,k])
+        Cdiag=np.matmul(matrix,u)
+        C_diag[n,:,:,k] = Cdiag
+
+    #print(C_diag[n,:,:,k])
 
 #3. Calculem Eb(t) per a los op iguals a la sink i a la source
-for op_ in range(t_0,n_op):
-    op=op_-t_0
+for op in range(ndim):
     kt=1
     EMpoint=0.
     EMpoint=np.zeros((nboot,(nt-kt)))
     for k in range(0,(nt-kt)):
         for j in range(0,nboot):
-            EMpoint[j][k]=np.log(C_diag[j][op][op][k]/C_diag[j][op][op][k+kt])/kt
+            EMpoint[j][k]=np.log(C_diag[j,op,op,k]/C_diag[j,op,op,k+kt])/kt
 
     #Clculem \Bar{E}(t) i errors
     mean=np.zeros(nt-kt)
@@ -132,7 +135,7 @@ fig1 = fig.add_subplot(1,1,1)
 fig1.set_title("Effective mass plot")
 fig1.set_ylabel(r'$\mathrm{m} \,\mathrm{(l.u.)}$')
 fig1.set_xlabel(r'$t \,\mathrm{(l.u.)}$')
-fig1.set_ylim([2.10,2.6]) #1.10,1.3
+#fig1.set_ylim([2.10,2.6]) #1.10,1.3
 fig1.set_xlim([0,22]) #0,20.5
 #plt.xticks([5,10,15,20])
 plt.minorticks_on()
@@ -140,7 +143,7 @@ fig1.axes.tick_params(which='both',direction='in')
 fig1.yaxis.set_ticks_position('both')
 fig1.xaxis.set_ticks_position('both')
 #Plots dels diferents operadors
-for i in range(0,n_op):
+for i in range(ndim):
     fig1.errorbar(xboot,yboot[i], yerr=eboot[i], ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7, label=("operador"+str(i+1)))
 plt.legend()
 #plt.show()
