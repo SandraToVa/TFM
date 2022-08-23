@@ -29,7 +29,7 @@ eboot=[]
 for op in range(0,n_op):
     #1. Llegim les dades Ci(t)
     #DELS FITXER .H5
-    fh5 = h5py.File('\\Users\\Sandra\\Documents\\GitHub\\TFM\\qblocks_matrix_irreps_cl3_32_48_b6p1_m0p2450_frontera-002.h5', 'r')
+    fh5 = h5py.File('/Users/sandra/Documents/GitHub/TFM/qblocks_matrix_irreps_cl3_32_48_b6p1_m0p2450_frontera.h5', 'r')
     blck = 0.5*(np.real(np.array(fh5['B2_I1_A1_f'][0:nsc,op,0,op,1,0:nt])+np.real(np.array(fh5['B2_I1_A1_b'][0:nsc,op,0,op,1,0:nt]))))
 
     pmean=np.zeros(nt)
@@ -93,8 +93,8 @@ fig1 = fig.add_subplot(1,1,1)
 fig1.set_title("Effective mass plot")
 fig1.set_ylabel(r'$\mathrm{m} \,\mathrm{(l.u.)}$')
 fig1.set_xlabel(r'$t \,\mathrm{(l.u.)}$')
-fig1.set_ylim([2.10,2.6]) #1.10,1.3
-fig1.set_xlim([0,22]) #0,20.5
+fig1.set_ylim([2.35,2.70]) #1.10,1.3
+fig1.set_xlim([0,19]) #0,20.5
 #plt.xticks([5,10,15,20])
 plt.minorticks_on()
 fig1.axes.tick_params(which='both',direction='in')
@@ -105,7 +105,7 @@ for i in range(0,n_op):
     fig1.errorbar(xboot,yboot[i], yerr=eboot[i], ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7, label=("operador"+str(i+1)))
 plt.legend()
 #plt.show()
-with PdfPages('B2_I1_A1_plot.pdf') as pdf:
+with PdfPages('B2_I1_A1_tots.pdf') as pdf:
     pdf.savefig(fig)
 
 plt.close('all')

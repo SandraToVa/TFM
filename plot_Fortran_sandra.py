@@ -34,7 +34,7 @@ nbot_=1./(nboot-1)
 #blck=np.array([[float(i) for i in row.split()] for row in data])   #Columnes=k=t i files=i de 1 a N
 
 #DELS FITXER .H5 #nsc=29 i 454
-fh5 = h5py.File('\\Users\\Sandra\\Documents\\GitHub\\TFM\\qblocks_matrix_irreps_cl3_32_48_b6p1_m0p2450_frontera-002.h5', 'r')
+fh5 = h5py.File('/Users/sandra/Documents/GitHub/TFM/qblocks_matrix_irreps_cl3_32_48_b6p1_m0p2450_frontera.h5', 'r')
 blck = 0.5*(np.real(np.array(fh5['B1_G1_f'][0:nsc,0,0,0,1,0:nt])+np.real(np.array(fh5['B1_G1_b'][0:nsc,0,0,0,1,0:nt]))))
 
 pmean=np.zeros(nt)

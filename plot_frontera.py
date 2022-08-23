@@ -33,8 +33,8 @@ yboot=[]
 eboot=[]
 #op=3,11
 #DELS FITXER .H5
-#fh5 = h5py.File('\\Users\\Sandra\\Documents\\GitHub\\TFM\\qblocks_matrix_irreps_cl3_32_48_b6p1_m0p2450_frontera-002.h5', 'r')
-fh5 = h5py.File('/Volumes/GoogleDrive-100962958533814099960/.shortcut-targets-by-id/1mV9ITzWE4JpeOWAX6GdzvZ5l3if1bz8j/Sandra Tomás/Codis/data/qblocks_matrix_irreps_cl3_32_48_b6p1_m0p2450_frontera.h5', 'r')
+fh5 = h5py.File('/Users/sandra/Documents/GitHub/TFM/qblocks_matrix_irreps_cl3_32_48_b6p1_m0p2450_frontera.h5', 'r')
+#fh5 = h5py.File('/Volumes/GoogleDrive-100962958533814099960/.shortcut-targets-by-id/1mV9ITzWE4JpeOWAX6GdzvZ5l3if1bz8j/Sandra Tomás/Codis/data/qblocks_matrix_irreps_cl3_32_48_b6p1_m0p2450_frontera.h5', 'r')
 blck = np.zeros((nsc,ndim,ndim,nt))
 for i,opsrc in enumerate(n_oplist):
     for j,opsnk in enumerate(n_oplist):
@@ -60,9 +60,8 @@ for j in range(nboot):
     for i in range(nsc):
         boot=boot+blck2[int(x[i][j]*nsc),:,:,:]
     pmeanboot[j,:,:,:]=boot*nsc_   #Ara hem generat les Nb bootstrap samples Cb(t)
-    
+
 #pmeanboot=C(t)
-#pmeanboot2=C(t) en pre-processing
 #C=\tilde{C}(t)
 #C_diag=matriu final C_alpha,alpha que utilitzem per trobar la energia
 #Var3.a find the cholesky decomposition of pmeanboot2(t0)
@@ -136,7 +135,7 @@ fig1.set_title("Effective mass plot")
 fig1.set_ylabel(r'$\mathrm{m} \,\mathrm{(l.u.)}$')
 fig1.set_xlabel(r'$t \,\mathrm{(l.u.)}$')
 #fig1.set_ylim([2.10,2.6]) #1.10,1.3
-fig1.set_xlim([0,22]) #0,20.5
+fig1.set_xlim([0,19]) #0,20.5
 #plt.xticks([5,10,15,20])
 plt.minorticks_on()
 fig1.axes.tick_params(which='both',direction='in')
@@ -144,7 +143,7 @@ fig1.yaxis.set_ticks_position('both')
 fig1.xaxis.set_ticks_position('both')
 #Plots dels diferents operadors
 for i in range(ndim):
-    fig1.errorbar(xboot,yboot[i], yerr=eboot[i], ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7, label=("operador"+str(i+1)))
+    fig1.errorbar(xboot,yboot[i], yerr=eboot[i], ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7, label=("operador"+str(n_oplist[i])))
 plt.legend()
 #plt.show()
 with PdfPages('B2_I1_A1_plot.pdf') as pdf:
