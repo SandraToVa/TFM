@@ -143,7 +143,7 @@ fig1.yaxis.set_ticks_position('both')
 fig1.xaxis.set_ticks_position('both')
 #Plots dels diferents operadors
 for i in range(ndim):
-    fig1.errorbar(xboot,yboot[i], yerr=eboot[i], ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7, label=("operador"+str(n_oplist[i])))
+    fig1.errorbar(xboot,yboot[i], yerr=eboot[i], ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7, label=("operator"+str(n_oplist[i])))
 plt.legend()
 #plt.show()
 with PdfPages('B2_I1_A1_plot.pdf') as pdf:
