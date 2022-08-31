@@ -29,6 +29,7 @@ n_oplist = [3,4,5,6]
 n_op = len(n_oplist)
 n_smear = 1
 ndim = n_op*n_smear
+ndim_t=4
 yboot=[]
 eboot=[]
 #op=3,11
@@ -122,6 +123,10 @@ for op in range(ndim):
 
 xboot=list(range(1, nt))
 
+m_n=1.203
+levels_t=[2*m_n,2*math.sqrt(m_n**2+(2*math.pi/32)**2),2*math.sqrt(m_n**2+2*(2*math.pi/32)**2),2*math.sqrt(m_n**2+3*(2*math.pi/32)**2)] #2m_n, 2sqrt(m^2+(2*pi/32)^2])
+
+
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif', size='12')
 
@@ -132,9 +137,9 @@ plt.subplots_adjust(left=0.08, bottom=0.08, right=0.98, top=0.95, wspace=0.21, h
 #PLOT LINEAL
 fig1 = fig.add_subplot(1,1,1)
 fig1.set_title("Effective mass plot")
-fig1.set_ylabel(r'$\mathrm{m} \,\mathrm{(l.u.)}$')
+fig1.set_ylabel(r'$\mathrm{E} \,\mathrm{(l.u.)}$')
 fig1.set_xlabel(r'$t \,\mathrm{(l.u.)}$')
-#fig1.set_ylim([2.10,2.6]) #1.10,1.3
+fig1.set_ylim([2.380,2.550]) #1.10,1.3
 fig1.set_xlim([0,19]) #0,20.5
 #plt.xticks([5,10,15,20])
 plt.minorticks_on()
@@ -143,10 +148,62 @@ fig1.yaxis.set_ticks_position('both')
 fig1.xaxis.set_ticks_position('both')
 #Plots dels diferents operadors
 for i in range(ndim):
-    fig1.errorbar(xboot,yboot[i], yerr=eboot[i], ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7, label=("operator"+str(n_oplist[i])))
-plt.legend()
+    fig1.errorbar(xboot,yboot[i], yerr=eboot[i], ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7)
+for i in range(ndim_t):
+    plt.plot([0,19],[levels_t[i],levels_t[i]],c='black',ls='--')
+#plt.legend()
 #plt.show()
 with PdfPages('B2_I1_A1_plot.pdf') as pdf:
+    pdf.savefig(fig)
+
+plt.close('all')
+
+#Plot of the energy levels despues de fer el fit amb plot_frontera_fit_plot.py
+#nivells energia lineal i exponentcial
+e_levels=[[2.406,2.406],[2.431,2.431],[2.462,2.462],[2.496,2.496]]
+ebar=[[0.0048,0.0049],[0.0061,0.0061],[0.0062,0.0035],[0.0074,0.0075]]
+
+e_levels_no3=[[2.431,2.431],[2.462,2.462],[2.496,2.496]]
+ebar_no3=[[0.0058,0.0059],[0.0056,0.0057],[0.0066,0.0066]]
+
+e_levels_no4=[[2.406,2.407],[2.461,2.461],[2.496,2.496]]
+ebar_no4=[[0.0045,0.0074],[0.0065,0.0067],[0.0074,0.0075]]
+
+e_levels_no5=[[2.4063349914550782,2.406726030809348],[2.432021427154541,2.432021770304856],[2.495771484375001,2.4957715528791518]]
+ebar_no5=[[0.004399067671495806,0.004805618782495939],[0.0057401894057316685,0.005739931545644638],[0.006066538661732237,0.006080462341260557]]
+
+x_levels=[1,2]
+color=['tab:blue','tab:orange','tab:green','tab:red']
+
+
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif', size='12')
+
+fig = plt.figure(figsize=(3,6))
+
+plt.subplots_adjust(left=0.30, bottom=0.08, right=0.98, top=0.95, wspace=0.21, hspace=0.2)
+##################
+fig1 = fig.add_subplot(1,1,1)
+fig1.set_title("Energy levels")
+fig1.set_ylabel(r'$\mathrm{E} \,\mathrm{(l.u.)}$')
+#fig1.set_xlabel(r'$t \,\mathrm{(l.u.)}$')
+fig1.set_ylim([2.380,2.550]) #1.10,1.3
+fig1.set_xlim([0,3]) #0,20.5
+fig1.set_xticklabels(['','Lin', 'Exp',''])
+#plt.xticks([5,10,15,20])
+plt.minorticks_on()
+fig1.axes.tick_params(which='both',direction='in')
+fig1.yaxis.set_ticks_position('both')
+fig1.xaxis.set_ticks_position('both')
+#Plots dels diferents operadors
+for i in range(ndim):
+    fig1.errorbar(x_levels[0],e_levels_no5[i][0], yerr=ebar_no5[i][0], ls='None', marker='v', c=color[i], markersize=6, capsize=1, elinewidth=0.7)
+    fig1.errorbar(x_levels[1],e_levels_no5[i][1], yerr=ebar_no5[i][1], ls='None', marker='s', c=color[i], markersize=6, capsize=1, elinewidth=0.7)
+for i in range(ndim_t):
+    plt.plot([0,3],[levels_t[i],levels_t[i]],c='black',ls='--')
+#plt.legend()
+#plt.show()
+with PdfPages('levels_no5.pdf') as pdf:
     pdf.savefig(fig)
 
 plt.close('all')
