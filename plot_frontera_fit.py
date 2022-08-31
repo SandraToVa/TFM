@@ -25,7 +25,7 @@ nbot_=1./(nboot-1)
 #Creo un bucle per a plotejer totes les dades juntes
 #Numero de operadors n_op
 #n_op=10  #10
-n_oplist = [3,4,5,6]
+n_oplist = [3,4,6]
 n_op = len(n_oplist)
 n_smear = 1
 ndim = n_op*n_smear
