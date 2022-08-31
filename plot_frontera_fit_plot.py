@@ -29,7 +29,7 @@ nboot_=1./nboot
 nbot_=1./(nboot-1)
 kt=1
 
-dir = 'Op' + sys.argv[1] +'/'
+dir = 'Op_no5_' + sys.argv[1] +'/'
 
 color=['tab:blue','tab:orange','tab:green','tab:red']
 lightc=['aliceblue','linen','honeydew','mistyrose']
@@ -57,7 +57,6 @@ yboot=pf.yboot[int(sys.argv[1])]
 eboot=pf.eboot[int(sys.argv[1])]
 E_b=pf.E_b[int(sys.argv[1])]
 
-print(E_b)
 
 #Ajust lineal
 def func_l(t,d):
@@ -384,7 +383,7 @@ for i in range(7,10):       #Temps inicial del fit (7,10) o (3,12)
 print('LINEAL###############################')
 print('* chi2 =',chi2_l)
 print('* central =',central_l)
-#print('* fit =',fit_l)  #Comprovo que es lo mateix q el central
+print('* fit =',fit_l)  #Comprovo que es lo mateix q el central
 print('* error estadistic =',sigma_l)
 
 #Millor resultat
@@ -400,6 +399,7 @@ sist_l=max(sistematic)
 print('* error sistemàtic =',sist_l)
 #L'eror total es
 sigma_t_l=math.sqrt(sist_l**2+millor_sigma_estad_l**2)
+print('* millor error total =',sigma_t_l)
 #MILLOR PLOT LINEAL
 #Per fer el plot dels ajustos
 xplot=np.linspace(millor_i_l,millor_f_l,num=(millor_f_l-millor_i_l)*100)
@@ -425,7 +425,7 @@ plt.minorticks_on()
 fig1.axes.tick_params(which='both',direction='in')
 fig1.yaxis.set_ticks_position('both')
 fig1.xaxis.set_ticks_position('both')
-fig1.errorbar(xboot,yboot, yerr=eboot, c=color[int(sys.argv[1])], ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label={"Operator"+str(3+int(sys.argv[1]))})
+fig1.errorbar(xboot,yboot, yerr=eboot, c=color[int(sys.argv[1])], ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7)
 ##fig1.errorbar(xjack,yjack, yerr=ejack, c='#20639B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Jackknive")
 #Plot del ajust
 plt.plot(xplot, yplot_l, c=color[int(sys.argv[1])], ls='-', label='fit: c=%5.3f' % tuple(millor_c_l))
@@ -461,8 +461,9 @@ plt.close('all')
 print('EXPONENCIAL###############################')
 print('* chi2 =',chi2_e)
 print('* central =',central_e)
-#print('* fit =',fit_e)
+print('* fit =',fit_e)
 print('* error estadistic =',sigma_e)
+print(millor_chi2_e)
 
 #Millor resultat
 #Lo ajust lineal 6,0 te la chi2 més baixa en 7.987054040388158
@@ -471,11 +472,12 @@ print('* error estadistic =',sigma_e)
 #Restem aquest numero en tots los elements de la llista central
 flat_central=itertools.chain(*central_e) #Fem que central sigue una sola llista
 flat_central=list(flat_central)
-sistematic=[elemento - millor_c_e[2] for elemento in flat_central]
+sistematic=[millor_c_e[2]-elemento for elemento in flat_central]
 #Error sistematic es lo maxim error de la llista
 sist_e=max(sistematic)
 print('* error sistemàtic =',sist_e)
 sigma_t_e=math.sqrt(sist_e**2+millor_sigma_estad_e**2)
+print('* millor error total =',sigma_t_e)
 
 #Per fer el plot dels ajustos
 #MILLOR PLOT EXPONENCIAL
@@ -500,7 +502,7 @@ plt.minorticks_on()
 fig1.axes.tick_params(which='both',direction='in')
 fig1.yaxis.set_ticks_position('both')
 fig1.xaxis.set_ticks_position('both')
-fig1.errorbar(xboot,yboot, yerr=eboot, c=color[int(sys.argv[1])], ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label={"Operator"+str(3+int(sys.argv[1]))})
+fig1.errorbar(xboot,yboot, yerr=eboot, c=color[int(sys.argv[1])], ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7)
 ##fig1.errorbar(xjack,yjack, yerr=ejack, c='#20639B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Jackknive")
 #Plot del ajust
 plt.plot(xplot, yplot_e, c=color[int(sys.argv[1])], ls='-', label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(millor_c_e))
