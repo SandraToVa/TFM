@@ -18,7 +18,7 @@ from scipy.optimize import minimize
 
 import h5py
 
-nsc=29  #N # Utilitza nsc=454 si fas servir les dades del fitxer h5
+nsc=29  #N # Utilitza nsc=454 si fas servir les dades del fitxer h5 i 29 otherwhise
 nt=21
 nboot=nsc    #Nb
 nsc_=1./nsc
@@ -32,6 +32,39 @@ with open('prot_SP.dat', 'r') as f:
     data=f.read()
 data = data.split('\n')
 blck=np.array([[float(i) for i in row.split()] for row in data])   #Columnes=k=t i files=i de 1 a N
+times=list(range(1, nt+2))
+
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif', size='12')
+
+fig = plt.figure(figsize=(8,6))
+
+plt.subplots_adjust(left=0.08, bottom=0.08, right=0.98, top=0.95, wspace=0.21, hspace=0.2)
+fig1 = fig.add_subplot(1,1,1)
+
+#fig1.set_title("Correlator")
+plt.yscale("log")
+fig1.set_ylabel(r'$\mathrm{C_i} \,\mathrm{(l.u.)}$')
+fig1.set_xlabel(r'$t \,\mathrm{(l.u.)}$')
+#fig1.set_ylim([1.10,1.3])
+fig1.set_xlim([0,20.5])
+#plt.xticks([5,10,15,20])
+plt.minorticks_on()
+fig1.axes.tick_params(which='both',direction='in')
+fig1.yaxis.set_ticks_position('both')
+fig1.xaxis.set_ticks_position('both')
+#fig1.errorbar(xboot,yboot, yerr=eboot, c='#ED553B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Bootstrap")
+##fig1.errorbar(xjack,yjack, yerr=ejack, c='#20639B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Jackknive")
+#Plot de blck
+for i in range(0,nsc):
+    plt.scatter(times, blck[i][:], marker='.', c='black')
+
+#plt.legend()
+#plt.show()
+with PdfPages('correlator.pdf') as pdf:
+    pdf.savefig(fig)
+list(range(1, nt))
+plt.close('all')
 
 #DELS FITXER .H5 #nsc=29 i 454
 #fh5 = h5py.File('/Users/sandra/Documents/GitHub/TFM/qblocks_matrix_irreps_cl3_32_48_b6p1_m0p2450_frontera.h5', 'r')
