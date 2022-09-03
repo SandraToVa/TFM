@@ -23,10 +23,10 @@ nsc1_=1./(nsc-1)
 nboot_=1./nboot
 nbot_=1./(nboot-1)
 #Creo un bucle per a plotejer totes les dades juntes
-n_oplist = [3,11,19,27,35] #Barions sense moment
+#n_oplist = [3,11,19,27,35] #Barions sense moment
 #n_oplist = [3,11,19,27,35,4,12,20,28,36] #Barions sense moment, amb moment n=1
 #n_oplist = [3,11,19,27,35,4,12,20,28,36,5,13,21,29,37] #Barions sense moment, amb moment n=1, n=2
-#n_oplist = [3,11,19,27,35,4,12,20,28,36,5,13,21,29,37,6,14,22,30,38] #Barions sense moment, amb moment n=1, n=2, n=3
+n_oplist = [3,11,19,27,35,4,12,20,28,36,5,13,21,29,37,6,14,22,30,38] #Barions sense moment, amb moment n=1, n=2, n=3
 n_op = len(n_oplist)
 n_smear = 1
 ndim = n_op*n_smear
@@ -34,8 +34,8 @@ yboot=[]
 eboot=[]
 #op=3,11
 #DELS FITXER .H5
-#fh5 = h5py.File('\\Users\\Sandra\\Documents\\GitHub\\TFM\\qblocks_matrix_irreps_cl3_32_48_b6p1_m0p2450_frontera-002.h5', 'r')
-fh5 = h5py.File('/Users/marcilla/My Drive (marcilla@uw.edu)/NPLQCD/Hdib-variational/variational-autofiiter/var_data/qblocks_strange_matrix_irreps_cl3_32_48_b6p1_m0p2450_andes.h5', 'r')
+fh5 = h5py.File('/Users/sandra/Documents/GitHub/TFM/qblocks_strange_matrix_irreps_cl3_32_48_b6p1_m0p2450_andes.h5', 'r')
+#fh5 = h5py.File('/Users/marcilla/My Drive (marcilla@uw.edu)/NPLQCD/Hdib-variational/variational-autofiiter/var_data/qblocks_strange_matrix_irreps_cl3_32_48_b6p1_m0p2450_andes.h5', 'r')
 blckB1 = np.zeros((nsc,nt))
 blckB1 = 0.5*(np.real(np.array(fh5['B1_G1_f'][0:nsc,0,0,0,0,0:nt])+np.real(np.array(fh5['B1_G1_b'][0:nsc,0,0,0,0,0:nt]))))
 blckB2 = np.zeros((nsc,ndim,ndim,nt))
@@ -46,7 +46,7 @@ for i,opsrc in enumerate(n_oplist):
                 iii = i+ii*n_op
                 jjj = j+jj*n_op
                 blckB2[:,iii,jjj,:] = 0.5*(np.real(np.array(fh5['B2_I1_A1_f'][0:nsc,opsrc,ii,opsnk,jj,0:nt])+np.real(np.array(fh5['B2_I1_A1_b'][0:nsc,opsrc,ii,opsnk,jj,0:nt]))))
-                
+
 blck2=np.zeros((nsc,ndim,ndim,nt))
 for op_src in range(ndim):
     for op_snk in range(ndim):
@@ -67,7 +67,7 @@ for j in range(nboot):
         bootB2=bootB2+blck2[int(x[i][j]*nsc),:,:,:]
     pmeanbootB1[j,:]=bootB1*nsc_
     pmeanbootB2[j,:,:,:]=bootB2*nsc_   #Ara hem generat les Nb bootstrap samples Cb(t)
-    
+
 #pmeanboot=C(t)
 #pmeanboot2=C(t) en pre-processing
 #C=\tilde{C}(t)
@@ -135,16 +135,15 @@ plt.rc('font', family='serif', size='12')
 
 fig = plt.figure(figsize=(8,6))
 
-plt.subplots_adjust(left=0.08, bottom=0.08, right=0.98, top=0.95, wspace=0.21, hspace=0.2)
-##################            #No cal fer un gràfic cada vegada pero m'ajuda a visualitzar l'ajust -> Cal canviar-ho quan tot vagi be
+plt.subplots_adjust(left=0.09, bottom=0.08, right=0.95, top=0.95, wspace=0.21, hspace=0.2)
+##################
 #PLOT LINEAL
 fig1 = fig.add_subplot(1,1,1)
 fig1.set_title("Effective mass plot")
 fig1.set_ylabel(r'$\mathrm{E} \,\mathrm{(l.u.)}$')
 fig1.set_xlabel(r'$t \,\mathrm{(l.u.)}$')
-fig1.set_ylim([-0.05,0.1]) #1.10,1.3
-fig1.set_xlim([0.5,11.5]) #0,20.5
-#plt.xticks([5,10,15,20])
+fig1.set_ylim([-0.05,0.1])
+fig1.set_xlim([0.5,11.5])
 plt.minorticks_on()
 fig1.axes.tick_params(which='both',direction='in')
 fig1.yaxis.set_ticks_position('both')
@@ -161,7 +160,7 @@ fig1.axhline(2*np.sqrt(mn**2+3*(2*np.pi/32)**2)-2*mn, color='k', linestyle='--')
 fig1.axhline(2*np.sqrt(mn**2+4*(2*np.pi/32)**2)-2*mn, color='k', linestyle='--')
 
 #plt.show()
-with PdfPages('B2_I1_A1_plot.pdf') as pdf:
+with PdfPages('hdib_sense+1+2+3.pdf') as pdf:
     pdf.savefig(fig)
 
 plt.close('all')

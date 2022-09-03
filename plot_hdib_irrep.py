@@ -35,8 +35,8 @@ yboot=[]
 eboot=[]
 #op=3,11
 #DELS FITXER .H5
-#fh5 = h5py.File('\\Users\\Sandra\\Documents\\GitHub\\TFM\\qblocks_matrix_irreps_cl3_32_48_b6p1_m0p2450_frontera-002.h5', 'r')
-fh5 = h5py.File('/Users/marcilla/My Drive (marcilla@uw.edu)/NPLQCD/Hdib-variational/variational-autofiiter/var_data/qblocks_strange_matrix_irreps_cl3_32_48_b6p1_m0p2450_andes.h5', 'r')
+fh5 = h5py.File('/Users/sandra/Documents/GitHub/TFM/qblocks_strange_matrix_irreps_cl3_32_48_b6p1_m0p2450_andes.h5', 'r')
+#fh5 = h5py.File('/Users/marcilla/My Drive (marcilla@uw.edu)/NPLQCD/Hdib-variational/variational-autofiiter/var_data/qblocks_strange_matrix_irreps_cl3_32_48_b6p1_m0p2450_andes.h5', 'r')
 blckB1 = np.zeros((nsc,nt))
 blckB1 = 0.5*(np.real(np.array(fh5['B1_G1_f'][0:nsc,0,0,0,0,0:nt])+np.real(np.array(fh5['B1_G1_b'][0:nsc,0,0,0,0,0:nt]))))
 blckB2 = np.zeros((nsc,ndim,ndim,nt))
@@ -47,7 +47,7 @@ for i,opsrc in enumerate(n_oplist):
                 iii = i+ii*n_op
                 jjj = j+jj*n_op
                 blckB2[:,iii,jjj,:] = 0.5*(np.real(np.array(fh5['B2_I1_A1_f'][0:nsc,opsrc,ii,opsnk,jj,0:nt])+np.real(np.array(fh5['B2_I1_A1_b'][0:nsc,opsrc,ii,opsnk,jj,0:nt]))))
-                
+
 coefsinglet = [np.sqrt(1/8), np.sqrt(3/8)*np.sqrt(1/3), np.sqrt(3/8)*np.sqrt(2/3), np.sqrt(1/2)*np.sqrt(1/2), np.sqrt(1/2)*np.sqrt(1/2)]
 coefsingletmat = np.zeros((5,5))
 for i in range(5):
@@ -82,7 +82,7 @@ for j in range(nboot):
         bootB2=bootB2+blck2[int(x[i][j]*nsc),:,:,:]
     pmeanbootB1[j,:]=bootB1*nsc_
     pmeanbootB2[j,:,:,:]=bootB2*nsc_   #Ara hem generat les Nb bootstrap samples Cb(t)
-    
+
 
 if ndimirrep < 2:
     C_diag = pmeanbootB2
@@ -149,7 +149,7 @@ plt.rc('font', family='serif', size='12')
 
 fig = plt.figure(figsize=(8,6))
 
-plt.subplots_adjust(left=0.08, bottom=0.08, right=0.98, top=0.95, wspace=0.21, hspace=0.2)
+plt.subplots_adjust(left=0.09, bottom=0.08, right=0.98, top=0.95, wspace=0.21, hspace=0.2)
 ##################            #No cal fer un gràfic cada vegada pero m'ajuda a visualitzar l'ajust -> Cal canviar-ho quan tot vagi be
 #PLOT LINEAL
 fig1 = fig.add_subplot(1,1,1)
@@ -175,7 +175,7 @@ fig1.axhline(2*np.sqrt(mn**2+3*(2*np.pi/32)**2)-2*mn, color='k', linestyle='--')
 fig1.axhline(2*np.sqrt(mn**2+4*(2*np.pi/32)**2)-2*mn, color='k', linestyle='--')
 
 #plt.show()
-with PdfPages('B2_I1_A1_singlet_plot.pdf') as pdf:
+with PdfPages('hdib_irrep_sense.pdf') as pdf:
     pdf.savefig(fig)
 
 plt.close('all')

@@ -100,8 +100,8 @@ for k in range(0,(nt-kt)):
 
 counter_i=0
 #chi square
-chi2_l=[[],[],[]] #lineal
-chi2_e=[[],[],[]]
+chi2_l=[[],[],[],[]] #lineal
+chi2_e=[[],[],[],[]]
 #valor central
 central_l=[[],[],[]]
 central_e=[[],[],[]]
@@ -487,7 +487,7 @@ fig1.xaxis.set_ticks_position('both')
 fig1.errorbar(xboot,yboot, yerr=eboot, c='#ED553B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Bootstrap")
 ##fig1.errorbar(xjack,yjack, yerr=ejack, c='#20639B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Jackknive")
 #Plot del ajust
-plt.plot(xplot, yplot_l, 'r-', label='fit: c=%5.3f' % tuple(millor_c_l))
+plt.plot(xplot, yplot_l, 'r-', label='fit: k=%5.3f' % tuple(millor_c_l))
 #Error de l'ajust (estad+sistematic)
 fig1.add_patch(
     patches.Rectangle(
