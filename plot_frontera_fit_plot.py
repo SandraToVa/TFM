@@ -306,7 +306,7 @@ for i in range(7,10):       #Temps inicial del fit (7,10) o (3,12)
         fig1.errorbar(xboot,yboot, yerr=eboot, c=color[int(sys.argv[1])], ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label={"Operator"+str(3+int(sys.argv[1]))})
         ##fig1.errorbar(xjack,yjack, yerr=ejack, c='#20639B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Jackknive")
         #Plot del ajust
-        plt.plot(xplot, yplot_l, c=color[int(sys.argv[1])], ls='-', label='fit: c=%5.3f' % tuple(c_l))
+        plt.plot(xplot, yplot_l, c=color[int(sys.argv[1])], ls='-', label='fit: c=%5.3f l.u.' % tuple(c_l))
         #Error de l'ajust (només l'estadistic)
         fig1.add_patch(
             patches.Rectangle(
@@ -409,15 +409,15 @@ for num in range(0,(millor_f_l-millor_i_l)*100):
 
 
 plt.rc('text', usetex=True)
-plt.rc('font', family='serif', size='12')
+plt.rc('font', family='serif', size='17')
 
 fig = plt.figure(figsize=(8,6))
 
-plt.subplots_adjust(left=0.08, bottom=0.08, right=0.98, top=0.95, wspace=0.21, hspace=0.2)
+plt.subplots_adjust(left=0.13, bottom=0.13, right=0.98, top=0.95, wspace=0.21, hspace=0.2)
 fig1 = fig.add_subplot(1,1,1)
 
 fig1.set_title("Effective mass plot")
-fig1.set_ylabel(r'$\mathrm{m} \,\mathrm{(l.u.)}$')
+fig1.set_ylabel(r'$\mathrm{E} \,\mathrm{(l.u.)}$')
 fig1.set_xlabel(r'$t \,\mathrm{(l.u.)}$')
 fig1.set_xlim([0,19])
 #plt.xticks([5,10,15,20])
@@ -428,7 +428,7 @@ fig1.xaxis.set_ticks_position('both')
 fig1.errorbar(xboot,yboot, yerr=eboot, c=color[int(sys.argv[1])], ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7)
 ##fig1.errorbar(xjack,yjack, yerr=ejack, c='#20639B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Jackknive")
 #Plot del ajust
-plt.plot(xplot, yplot_l, c=color[int(sys.argv[1])], ls='-', label='fit: c=%5.3f' % tuple(millor_c_l))
+plt.plot(xplot, yplot_l, c=color[int(sys.argv[1])], ls='-', label='fit: k=%5.3f (l.u.)' % tuple(millor_c_l))
 #Error de l'ajust (estad+sistematic)
 fig1.add_patch(
     patches.Rectangle(
@@ -449,11 +449,11 @@ fig1.add_patch(
         linewidth=0,
         facecolor = lightc[int(sys.argv[1])],
         fill=True,
-        label='Statictical error'
+        label='Statistical error'
         ) )
 plt.legend()
 #plt.show()
-with PdfPages(dir+'best' + 'Op' + sys.argv[1] + '_lineal.pdf') as pdf:
+with PdfPages(dir+'best' + 'Op' + sys.argv[1] + '_lineal_no5.pdf') as pdf:
     pdf.savefig(fig)
 
 plt.close('all')
@@ -472,7 +472,7 @@ print(millor_chi2_e)
 #Restem aquest numero en tots los elements de la llista central
 flat_central=itertools.chain(*central_e) #Fem que central sigue una sola llista
 flat_central=list(flat_central)
-sistematic=[millor_c_e[2]-elemento for elemento in flat_central]
+sistematic=[elemento-millor_c_e[2] for elemento in flat_central]
 #Error sistematic es lo maxim error de la llista
 sist_e=max(sistematic)
 print('* error sistemàtic =',sist_e)
@@ -486,15 +486,15 @@ yplot_e=func_e(xplot, millor_c_e[0],millor_c_e[1],millor_c_e[2])
 t_errors=np.linspace(millor_i_e,millor_f_e,millor_f_e-millor_i_e)
 
 plt.rc('text', usetex=True)
-plt.rc('font', family='serif', size='12')
+plt.rc('font', family='serif', size='17')
 
 fig = plt.figure(figsize=(8,6))
 
-plt.subplots_adjust(left=0.08, bottom=0.08, right=0.98, top=0.95, wspace=0.21, hspace=0.2)
+plt.subplots_adjust(left=0.13, bottom=0.13, right=0.98, top=0.95, wspace=0.21, hspace=0.2)
 fig1 = fig.add_subplot(1,1,1)
 
 fig1.set_title("Effective mass plot")
-fig1.set_ylabel(r'$\mathrm{m} \,\mathrm{(l.u.)}$')
+fig1.set_ylabel(r'$\mathrm{E} \,\mathrm{(l.u.)}$')
 fig1.set_xlabel(r'$t \,\mathrm{(l.u.)}$')
 fig1.set_xlim([0,19])
 #plt.xticks([5,10,15,20])
@@ -505,7 +505,7 @@ fig1.xaxis.set_ticks_position('both')
 fig1.errorbar(xboot,yboot, yerr=eboot, c=color[int(sys.argv[1])], ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7)
 ##fig1.errorbar(xjack,yjack, yerr=ejack, c='#20639B', ls='None', marker='o', markersize=6, capsize=1, elinewidth=0.7,label="Jackknive")
 #Plot del ajust
-plt.plot(xplot, yplot_e, c=color[int(sys.argv[1])], ls='-', label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(millor_c_e))
+plt.plot(xplot, yplot_e, c=color[int(sys.argv[1])], ls='-', label='fit: a=%5.3f, b=%5.3f, c=%5.3f (l.u.)' % tuple(millor_c_e))
 #Error de l'ajust
 fig1.add_patch(
     patches.Rectangle(
@@ -526,14 +526,14 @@ fig1.add_patch(
         linewidth=0,
         facecolor = lightc[int(sys.argv[1])],
         fill=True,
-        label='Statictical error'
+        label='Statistical error'
         ) )
 #plt.fill_between(t_errors, sigma_t_e_sup, sigma_t_e_inf, color='#ffa6a6', label='Total error', alpha=1) #MI: el representa la banda, en comptes de les dues linies
 
 
 plt.legend()
 #plt.show()
-with PdfPages(dir+'best'+ 'Op' + sys.argv[1] +'_exp.pdf') as pdf:
+with PdfPages(dir+'best'+ 'Op' + sys.argv[1] +'_exp_no5.pdf') as pdf:
     pdf.savefig(fig)
 
 plt.close('all')
